@@ -31,7 +31,7 @@ export interface AuthResponse {
 })
 export class AuthService {
 
-  private readonly API_URL = 'http://localhost:5000/api/auth';
+  private readonly API_URL = '/api/auth';
 
   constructor(private http: HttpClient) {}
 
