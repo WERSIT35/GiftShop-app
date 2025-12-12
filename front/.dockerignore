@@ -1,0 +1,12 @@
+node_modules
+dist
+*.log
+.git
+.gitignore
+.DS_Store
+.vscode
+.idea
+*.md
+e2e/
+src/environments/environment.ts
+src/environments/environment.prod.ts
