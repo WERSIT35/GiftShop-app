@@ -1,4 +1,3 @@
-// back/src/utils/mailer.ts - SECURE VERSION
 import nodemailer from "nodemailer";
 
 console.log("📧 EMAIL SYSTEM - Initializing...");

@@ -1,0 +1,27 @@
+﻿# Node / Angular
+node_modules
+dist
+out-tsc
+
+# Environment variables (CRITICAL)
+.env*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log
+yarn-error.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode
+.idea
+
+# Docker
+docker-compose.override.yml
+
+# Mongo
+mongodb/init.js
