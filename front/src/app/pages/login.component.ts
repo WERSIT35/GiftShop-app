@@ -1,9 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  FormBuilder,
+  Validators,
+  FormGroup,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { AuthResponse } from '../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -12,192 +16,220 @@ import { AuthResponse } from '../services/auth.service';
   template: `
     <div class="auth-container">
       <div class="auth-card">
-        <h2>Login to Your Account</h2>
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <h2>Login</h2>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+          <!-- EMAIL -->
           <div class="form-group">
-            <label for="email">Email</label>
-            <input id="email" type="email" formControlName="email" placeholder="user@example.com" class="form-control"/>
-            <span class="error" *ngIf="isFieldInvalid('email')">Please enter a valid email</span>
+            <label>Email</label>
+            <input
+              type="email"
+              formControlName="email"
+              placeholder="user@example.com"
+            />
+            <small *ngIf="isInvalid('email')">
+              Please enter a valid email
+            </small>
           </div>
 
+          <!-- PASSWORD -->
           <div class="form-group">
-            <label for="password">Password</label>
-            <input id="password" type="password" formControlName="password" placeholder="Enter password" class="form-control"/>
-            <span class="error" *ngIf="isFieldInvalid('password')">Password is required</span>
+            <label>Password</label>
+
+            <div class="password-wrapper">
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="Your password"
+              />
+              <button
+                type="button"
+                class="toggle"
+                (click)="togglePassword()"
+              >
+                {{ showPassword ? '🙈' : '👁️' }}
+              </button>
+            </div>
+
+            <small *ngIf="isInvalid('password')">
+              Password is required
+            </small>
           </div>
 
-          <button type="submit" class="btn btn-primary" [disabled]="!loginForm.valid || isLoading">
-            {{ isLoading ? 'Logging in...' : 'Login' }}
+          <!-- ERROR MESSAGE -->
+          <p class="error" *ngIf="errorMessage">
+            {{ errorMessage }}
+          </p>
+
+          <!-- SUBMIT -->
+          <button
+            type="submit"
+            [disabled]="form.invalid || loading"
+          >
+            {{ loading ? 'Logging in…' : 'Login' }}
           </button>
-
-          <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
-          <p class="success-message" *ngIf="successMessage">{{ successMessage }}</p>
         </form>
 
-        <p class="auth-link">
-          Don't have an account? <a routerLink="/register">Register here</a>
-        </p>
+        <!-- LINKS -->
+        <div class="links">
+          <a routerLink="/forgot-password">Forgot password?</a>
+          <span>•</span>
+          <a routerLink="/register">Create account</a>
+        </div>
       </div>
     </div>
-
   `,
   styles: [`
     .auth-container {
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 20px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
     }
 
     .auth-card {
-      background: white;
-      border-radius: 8px;
-      padding: 40px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      background: #fff;
+      padding: 32px;
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
+      border-radius: 8px;
+      box-shadow: 0 15px 30px rgba(0,0,0,.2);
     }
 
     h2 {
-      margin: 0 0 30px 0;
-      color: #333;
       text-align: center;
-      font-size: 28px;
+      margin-bottom: 24px;
     }
 
     .form-group {
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
+      margin-bottom: 16px;
     }
 
-    label {
-      margin-bottom: 8px;
-      color: #555;
-      font-weight: 500;
-      font-size: 14px;
-    }
-
-    .form-control {
+    input {
+      width: 100%;
       padding: 12px;
-      border: 1px solid #ddd;
       border-radius: 4px;
-      font-size: 14px;
-      transition: border-color 0.3s;
+      border: 1px solid #ccc;
     }
 
-    .form-control:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    .password-wrapper {
+      display: flex;
+      align-items: center;
     }
 
-    .error {
+    .password-wrapper input {
+      flex: 1;
+    }
+
+    .toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      margin-left: -40px;
+    }
+
+    small {
       color: #e74c3c;
-      font-size: 12px;
-      margin-top: 4px;
     }
 
-    .btn {
+    button[type="submit"] {
+      width: 100%;
       padding: 12px;
+      background: #667eea;
+      color: #fff;
       border: none;
       border-radius: 4px;
-      font-size: 16px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s;
+      margin-top: 8px;
     }
 
-    .btn-primary {
-      background-color: #667eea;
-      color: white;
-      width: 100%;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      background-color: #5568d3;
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn:disabled {
+    button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
 
-    .error-message {
+    .error {
       color: #e74c3c;
       text-align: center;
-      margin-top: 15px;
-      font-size: 14px;
+      margin-top: 8px;
     }
 
-    .success-message {
-      color: #27ae60;
-      text-align: center;
-      margin-top: 15px;
-      font-size: 14px;
-    }
-
-    .auth-link {
-      text-align: center;
+    .links {
       margin-top: 20px;
-      color: #666;
+      text-align: center;
       font-size: 14px;
     }
 
-    .auth-link a {
+    .links a {
       color: #667eea;
       text-decoration: none;
       font-weight: 600;
     }
 
-    .auth-link a:hover {
-      text-decoration: underline;
+    .links span {
+      margin: 0 8px;
     }
-  `]
+  `],
 })
 export class LoginComponent {
-  loginForm: FormGroup;
-  isLoading = false;
+  form: FormGroup;
+  loading = false;
   errorMessage = '';
-  successMessage = '';
+  showPassword = false;
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
-    this.loginForm = this.fb.group({
+  constructor(
+    private fb: FormBuilder,
+    private auth: AuthService,
+    private router: Router
+  ) {
+    // ✅ FIX: form created AFTER fb is available
+    this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required]]
+      password: ['', Validators.required],
     });
   }
 
-  isFieldInvalid(fieldName: string): boolean {
-    const field = this.loginForm.get(fieldName);
-    return !!(field && field.invalid && field.touched);
+  isInvalid(name: string): boolean {
+    const c = this.form.get(name);
+    return !!c && c.invalid && c.touched;
+  }
+
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
   }
 
   onSubmit(): void {
-    if (!this.loginForm.valid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
-    this.isLoading = true;
+    this.loading = true;
     this.errorMessage = '';
-    this.successMessage = '';
 
-    this.authService.login(this.loginForm.value).subscribe({
-      next: (res: AuthResponse) => {
-        this.isLoading = false;
+    const { email, password } = this.form.getRawValue();
+
+    this.auth.login({
+      email: email!,
+      password: password!,
+    }).subscribe({
+      next: (res) => {
+        this.loading = false;
+
         if (res.status === 'success') {
-          this.successMessage = res.message;
-          // Save token if needed: localStorage.setItem('token', res.token!);
-          setTimeout(() => this.router.navigate(['/dashboard']), 1500);
+          this.router.navigate(['/dashboard']);
         } else {
-          this.errorMessage = res.message;
+          this.errorMessage = res.message || 'Login failed';
         }
       },
       error: (err) => {
-        this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Login failed. Please check your credentials.';
+        this.loading = false;
+        this.errorMessage =
+          err.error?.message || 'Login failed. Try again.';
       }
     });
   }

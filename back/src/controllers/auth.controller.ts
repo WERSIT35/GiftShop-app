@@ -1,201 +1,271 @@
-import type { Request, Response } from "express";
+import { Request, Response } from "express";
 import crypto from "crypto";
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
+import ms from "ms";
 import User from "../models/User.js";
-import { sendEmail } from "../utils/mailer.js";
+import sendEmail from "../utils/mailer.js";
 
-const JWT_SECRET: string = process.env.JWT_SECRET || "changeme";
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:4200";
+/* ======================
+   JWT HELPERS
+====================== */
+const JWT_SECRET = process.env.JWT_SECRET as string;
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 
-// ----------------- REGISTER -----------------
+function isMsStringValue(val: string): boolean {
+  // Accepts formats like '7d', '1h', '30m', '100s', etc.
+  return /^[0-9]+(ms|s|m|h|d|w|y)$/.test(val);
+}
+
+function getJwtExpiresIn(): number | ms.StringValue {
+  if (!JWT_EXPIRES_IN) return "7d";
+  if (!isNaN(Number(JWT_EXPIRES_IN))) return Number(JWT_EXPIRES_IN);
+  if (typeof JWT_EXPIRES_IN === "string" && isMsStringValue(JWT_EXPIRES_IN)) {
+    return JWT_EXPIRES_IN as ms.StringValue;
+  }
+  return "7d";
+}
+
+const signToken = (userId: string) => {
+  if (!JWT_SECRET) {
+    throw new Error("JWT_SECRET is not defined in environment variables.");
+  }
+  const expiresIn = getJwtExpiresIn();
+  return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn });
+};
+
+/* ======================
+   REGISTER
+====================== */
 export const register = async (req: Request, res: Response) => {
   try {
-    const { name, email, password } = req.body;
+    const { email, password, name } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ 
-        status: "error", 
-        message: "Email and password are required." 
+      return res.status(400).json({
+        status: "error",
+        message: "Email and password required",
       });
     }
 
-    const exists = await User.findOne({ email });
-    if (exists) {
-      return res.status(400).json({ 
-        status: "error", 
-        message: "Email already registered." 
+    const existing = await User.findOne({ email }).exec();
+    if (existing) {
+      return res.status(409).json({
+        status: "error",
+        message: "User already exists",
       });
     }
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationTokenExpires = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24h
 
     const user = await User.create({
-      name,
       email,
       password,
+      name,
+      isEmailVerified: false,
       verificationToken,
-      verificationTokenExpires
+      verificationTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
-    const verifyUrl = `${FRONTEND_URL}/verify?token=${verificationToken}&email=${encodeURIComponent(email)}`;
-    const html = `
-      <p>Hello ${name || ""},</p>
-      <p>Thank you for registering at GiftShop. Please verify your email by clicking the link below:</p>
-      <p><a href="${verifyUrl}">Verify Email</a></p>
-      <p>If the link doesn't work, copy-paste: ${verifyUrl}</p>
-    `;
+    const verifyUrl = `${
+      process.env.FRONTEND_URL
+    }/verify?token=${verificationToken}&email=${encodeURIComponent(email)}`;
 
-    console.log("📧 Attempting to send verification email...");
-    const emailResult = await sendEmail(email, "Verify your GiftShop account", html);
+    await sendEmail({
+      to: email,
+      subject: "Verify your GiftShop account",
+      html: `
+        <p>Welcome to GiftShop 👋</p>
+        <p>Please verify your email:</p>
+        <a href="${verifyUrl}">${verifyUrl}</a>
+      `,
+    });
 
-    // Prepare response based on email success
-    const response: any = {
-      status: emailResult.success ? "success" : "partial",
-      message: emailResult.success 
-        ? "Registration successful. Check your email to verify." 
-        : "Account created but verification email failed. Please contact support.",
-      userId: user._id
-    };
-
-    // ⚠️ REMOVED: previewUrl check (new mailer.ts doesn't return previewUrl)
-    // If you want test emails, update mailer.ts to return previewUrl
-    
-    // If email failed, include token for manual verification
-    if (!emailResult.success) {
-      response.verificationToken = verificationToken;
-      response.manualVerifyUrl = `${FRONTEND_URL}/verify?token=${verificationToken}&email=${encodeURIComponent(email)}`;
-      response.error = emailResult.error;
-    }
-
-    return res.status(201).json(response);
-    
-  } catch (err: any) {
-    console.error("Register error:", err);
-    return res.status(500).json({ 
-      status: "error", 
-      message: "Server error", 
-      error: process.env.NODE_ENV === "development" ? err.message : undefined 
+    return res.status(201).json({
+      status: "success",
+      message:
+        "Registration successful. Please verify your email before signing in.",
+    });
+  } catch (err) {
+    console.error("REGISTER ERROR:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error",
     });
   }
 };
 
-// ----------------- EMAIL VERIFICATION -----------------
-export const verifyEmail = async (req: Request, res: Response) => {
-  try {
-    const { token, email } = req.query;
-
-    if (!token || !email) {
-      return res.status(400).json({ 
-        status: "error", 
-        message: "Missing token or email" 
-      });
-    }
-
-    const tokenStr = String(token);
-    const emailStr = String(email).trim().toLowerCase();
-
-    const user = await User.findOne({ email: emailStr });
-
-    if (!user) return res.status(404).json({ 
-      status: "error", 
-      message: "User not found" 
-    });
-
-    if (user.isVerified) {
-      return res.json({ 
-        status: "success", 
-        message: "Email already verified", 
-        alreadyVerified: true 
-      });
-    }
-
-    if (user.verificationToken !== tokenStr) {
-      return res.status(400).json({ 
-        status: "error", 
-        message: "Invalid token" 
-      });
-    }
-
-    if (user.verificationTokenExpires && user.verificationTokenExpires < new Date()) {
-      return res.status(400).json({ 
-        status: "error", 
-        message: "Token expired" 
-      });
-    }
-
-    user.isVerified = true;
-    user.verificationToken = null;
-    user.verificationTokenExpires = null;
-    await user.save();
-
-    return res.json({ 
-      status: "success", 
-      message: "Email verified successfully", 
-      alreadyVerified: false 
-    });
-  } catch (err: any) {
-    console.error("Verify error:", err);
-    return res.status(500).json({ 
-      status: "error", 
-      message: "Server error" 
-    });
-  }
-};
-
-// ----------------- LOGIN -----------------
+/* ======================
+   LOGIN
+====================== */
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ 
-        status: "error", 
-        message: "Email and password are required" 
+      return res.status(400).json({
+        status: "error",
+        message: "Email and password required",
       });
     }
 
-    const emailStr = String(email).trim().toLowerCase();
-    const user = await User.findOne({ email: emailStr });
-    
-    if (!user) return res.status(401).json({ 
-      status: "error", 
-      message: "Invalid credentials" 
+    const user = await User.findOne({ email }).select("+password").exec();
+
+    if (!user || !(await user.comparePassword(password))) {
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid credentials",
+      });
+    }
+
+    if (!user.isEmailVerified) {
+      return res.status(403).json({
+        status: "error",
+        message: "Please verify your email first",
+      });
+    }
+
+    const token = signToken(user._id.toString());
+
+    return res.json({
+      status: "success",
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name ?? null,
+      },
+    });
+  } catch (err) {
+    console.error("LOGIN ERROR:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
+};
+
+/* ======================
+   VERIFY EMAIL
+====================== */
+export const verifyEmail = async (req: Request, res: Response) => {
+  try {
+    const { token, email } = req.query;
+
+    if (!token || !email) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid verification link",
+      });
+    }
+
+    const user = await User.findOne({
+      email,
+      verificationToken: token,
+      verificationTokenExpires: { $gt: new Date() },
+    }).exec();
+
+    if (!user) {
+      return res.status(400).json({
+        status: "error",
+        message: "Verification link invalid or expired",
+      });
+    }
+
+    user.isEmailVerified = true;
+    user.verificationToken = null;
+    user.verificationTokenExpires = null;
+    await user.save();
+
+    return res.json({
+      status: "success",
+      message: "Email verified successfully",
+    });
+  } catch (err) {
+    console.error("VERIFY ERROR:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
+};
+
+/* ======================
+   FORGOT PASSWORD
+====================== */
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Do NOT reveal if email exists
+      return res.json({
+        message: "If this email exists, a reset link was sent",
+      });
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await user.save();
+
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}&email=${email}`;
+
+    await sendEmail({
+      to: email,
+      subject: "Reset your password",
+      html: `
+        <p>You requested a password reset</p>
+        <a href="${resetUrl}">Reset Password</a>
+        <p>This link expires in 1 hour.</p>
+      `,
     });
 
-    const ok = await user.comparePassword(password);
-    if (!ok) return res.status(401).json({ 
-      status: "error", 
-      message: "Invalid credentials" 
-    });
+    res.json({ message: "Password reset email sent" });
+  } catch (err) {
+    console.error("FORGOT PASSWORD ERROR:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
-    if (!user.isVerified) return res.status(403).json({ 
-      status: "error", 
-      message: "Please verify your email first" 
-    });
 
-    const token = jwt.sign(
-      { id: user._id }, 
-      JWT_SECRET, 
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" } as any
-    );
 
-    return res.json({ 
-      status: "success", 
-      message: "Login successful", 
-      token, 
-      user: { 
-        id: user._id, 
-        name: user.name, 
-        email: user.email 
-      } 
-    });
-  } catch (err: any) {
-    console.error("Login error:", err);
-    return res.status(500).json({ 
-      status: "error", 
-      message: "Server error", 
-      error: process.env.NODE_ENV === "development" ? err.message : undefined 
-    });
+/* ======================
+   RESET PASSWORD
+====================== */
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: new Date() },
+    }).select("+password");
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    // password will be hashed by pre-save hook
+    user.password = password;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+
+    await user.save();
+
+    return res.json({ message: "Password reset successful" });
+  } catch (err) {
+    console.error("RESET PASSWORD ERROR:", err);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

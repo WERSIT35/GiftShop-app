@@ -1,9 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../services/auth.service';
-import { AuthResponse } from '../services/auth.service';
+import { AuthService, AuthResponse } from '../services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -11,38 +10,55 @@ import { AuthResponse } from '../services/auth.service';
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
     <div class="auth-container">
-      <div class="auth-card">
+      <form class="auth-card" [formGroup]="form" (ngSubmit)="onSubmit()">
+
         <h2>Create Account</h2>
-        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-          <div class="form-group">
-            <label for="name">Full Name (Optional)</label>
-            <input id="name" type="text" formControlName="name" placeholder="John Doe" class="form-control"/>
+
+        <!-- SUCCESS -->
+        <div *ngIf="successMessage" class="alert success">
+          {{ successMessage }}
+        </div>
+
+        <!-- ERROR -->
+        <div *ngIf="errorMessage" class="alert error">
+          {{ errorMessage }}
+        </div>
+
+        <label>
+          Full Name (Optional)
+          <input type="text" formControlName="name">
+        </label>
+
+        <label>
+          Email
+          <input type="email" formControlName="email">
+        </label>
+
+        <label>
+          Password
+          <div class="password-field">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+            />
+            <button
+              type="button"
+              class="toggle"
+              (click)="togglePassword()">
+              {{ showPassword ? 'Hide' : 'Show' }}
+            </button>
           </div>
+        </label>
 
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input id="email" type="email" formControlName="email" placeholder="user@example.com" class="form-control"/>
-            <span class="error" *ngIf="isFieldInvalid('email')">Please enter a valid email</span>
-          </div>
+        <button type="submit" [disabled]="loading">
+          {{ loading ? 'Creating Account...' : 'Create Account' }}
+        </button>
 
-          <div class="form-group">
-            <label for="password">Password</label>
-            <input id="password" type="password" formControlName="password" placeholder="Enter password" class="form-control"/>
-            <span class="error" *ngIf="isFieldInvalid('password')">Password must be at least 6 characters</span>
-          </div>
-
-          <button type="submit" class="btn btn-primary" [disabled]="!registerForm.valid || isLoading">
-            {{ isLoading ? 'Creating Account...' : 'Register' }}
-          </button>
-
-          <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
-          <p class="success-message" *ngIf="successMessage">{{ successMessage }}</p>
-        </form>
-
-        <p class="auth-link">
-          Already have an account? <a routerLink="/login">Login here</a>
+        <p class="switch">
+          Already have an account?
+          <a routerLink="/login">Login here</a>
         </p>
-      </div>
+      </form>
     </div>
   `,
   styles: [`
@@ -51,157 +67,132 @@ import { AuthResponse } from '../services/auth.service';
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 20px;
+      background: #f4f6fb;
     }
-
     .auth-card {
-      background: white;
-      border-radius: 8px;
-      padding: 40px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      background: #fff;
+      padding: 32px;
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.1);
     }
-
-    h2 {
-      margin: 0 0 30px 0;
-      color: #333;
-      text-align: center;
-      font-size: 28px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-    }
-
     label {
-      margin-bottom: 8px;
-      color: #555;
-      font-weight: 500;
-      font-size: 14px;
+      display: block;
+      margin-bottom: 16px;
     }
-
-    .form-control {
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+    }
+    button[type="submit"] {
+      width: 100%;
       padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
-      transition: border-color 0.3s;
-    }
-
-    .form-control:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .error {
-      color: #e74c3c;
-      font-size: 12px;
-      margin-top: 4px;
-    }
-
-    .btn {
-      padding: 12px;
+      background: #667eea;
+      color: #fff;
       border: none;
       border-radius: 4px;
-      font-size: 16px;
-      font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s;
     }
-
-    .btn-primary {
-      background-color: #667eea;
-      color: white;
-      width: 100%;
+    button:disabled {
+      opacity: .6;
     }
-
-    .btn-primary:hover:not(:disabled) {
-      background-color: #5568d3;
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    .password-field {
+      display: flex;
+      gap: 6px;
     }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+    .toggle {
+      padding: 10px;
+      font-size: 12px;
     }
-
-    .error-message {
-      color: #e74c3c;
-      text-align: center;
-      margin-top: 15px;
+    .alert {
+      padding: 12px;
+      margin-bottom: 16px;
+      border-radius: 4px;
       font-size: 14px;
     }
-
-    .success-message {
-      color: #27ae60;
+    .alert.error {
+      background: #fdecea;
+      color: #c0392b;
+    }
+    .alert.success {
+      background: #e8f8f5;
+      color: #1e8449;
+    }
+    .switch {
+      margin-top: 16px;
       text-align: center;
-      margin-top: 15px;
-      font-size: 14px;
-    }
-
-    .auth-link {
-      text-align: center;
-      margin-top: 20px;
-      color: #666;
-      font-size: 14px;
-    }
-
-    .auth-link a {
-      color: #667eea;
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    .auth-link a:hover {
-      text-decoration: underline;
     }
   `]
 })
 export class RegisterComponent {
-  registerForm: FormGroup;
-  isLoading = false;
+
+  /* =========================
+     DEPENDENCY INJECTION
+  ========================= */
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  /* =========================
+     UI STATE
+  ========================= */
+  loading = false;
   errorMessage = '';
   successMessage = '';
+  showPassword = false;
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
-    this.registerForm = this.fb.group({
-      name: [''],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
-    });
-  }
+  /* =========================
+     FORM
+  ========================= */
+  form = this.fb.nonNullable.group({
+    name: [''],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+  });
 
-  isFieldInvalid(fieldName: string): boolean {
-    const field = this.registerForm.get(fieldName);
-    return !!(field && field.invalid && field.touched);
+  /* =========================
+     ACTIONS
+  ========================= */
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
   }
 
   onSubmit(): void {
-    if (!this.registerForm.valid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
-    this.isLoading = true;
+    this.loading = true;
     this.errorMessage = '';
     this.successMessage = '';
 
-    this.authService.register(this.registerForm.value).subscribe({
+    const { name, email, password } = this.form.getRawValue();
+
+    this.authService.register({
+      name: name || undefined,
+      email,
+      password
+    }).subscribe({
       next: (res: AuthResponse) => {
-        this.isLoading = false;
+        this.loading = false;
+
         if (res.status === 'success') {
-          this.successMessage = res.message;
-          setTimeout(() => this.router.navigate(['/login']), 2000);
+          this.successMessage =
+            'Registration successful. Please verify your email before signing in.';
+          this.form.reset();
         } else {
-          this.errorMessage = res.message;
+          this.errorMessage = res.message || 'Registration failed.';
         }
       },
       error: (err) => {
-        this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Registration failed. Please try again.';
+        this.loading = false;
+        this.errorMessage =
+          err.error?.message ||
+          err.message ||
+          'Registration failed.';
       }
     });
   }
