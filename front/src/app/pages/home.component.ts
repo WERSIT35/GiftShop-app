@@ -29,35 +29,38 @@ import { AuthService } from '../services/auth.service';
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--bg-gradient);
     }
 
     .navbar {
       background: rgba(0, 0, 0, 0.2);
-      padding: 20px 40px;
+      padding: var(--space-5) var(--space-8);
       display: flex;
       justify-content: space-between;
       align-items: center;
       backdrop-filter: blur(10px);
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      gap: var(--space-4);
     }
 
     .logo {
       color: white;
       margin: 0;
-      font-size: 28px;
+      font-size: clamp(1.4rem, 1.3vw + 1.1rem, 1.8rem);
       font-weight: 600;
     }
 
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: var(--space-5);
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     .user-info {
       color: rgba(255, 255, 255, 0.9);
-      font-size: 14px;
+      font-size: 1rem;
     }
 
     .btn {
@@ -67,15 +70,16 @@ import { AuthService } from '../services/auth.service';
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
+      font-size: 1rem;
     }
 
     .btn-logout {
-      background-color: #e74c3c;
+      background-color: var(--danger-500);
       color: white;
     }
 
     .btn-logout:hover {
-      background-color: #c0392b;
+      background-color: var(--danger-700);
       transform: translateY(-2px);
     }
 
@@ -91,19 +95,36 @@ import { AuthService } from '../services/auth.service';
     }
 
     h2 {
-      font-size: 40px;
+      font-size: clamp(1.8rem, 3vw + 1.1rem, 2.6rem);
       margin-bottom: 20px;
     }
 
     p {
-      font-size: 18px;
+      font-size: 1.05rem;
       margin: 10px 0;
     }
 
     .info {
-      font-size: 16px;
+      font-size: 1rem;
       opacity: 0.8;
       margin-top: 30px;
+    }
+
+    @media (max-width: 640px) {
+      .navbar {
+        padding: var(--space-4);
+        align-items: flex-start;
+      }
+
+      .nav-links {
+        width: 100%;
+        justify-content: space-between;
+        gap: var(--space-3);
+      }
+
+      .btn {
+        width: 100%;
+      }
     }
   `]
 })

@@ -53,39 +53,48 @@ import { AuthService } from '../services/auth.service';
       display: flex;
       justify-content: center;
       align-items: center;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      padding: 20px;
+      background: var(--bg-gradient);
+      padding: var(--space-5);
     }
 
     .auth-card {
-      background: #fff;
-      padding: 32px;
-      border-radius: 8px;
+      background: var(--surface-0);
+      padding: var(--space-8);
+      border-radius: var(--radius-md);
       width: 100%;
       max-width: 400px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.2);
+      box-shadow: var(--shadow-lg);
       text-align: center;
     }
 
-    h2 { margin-bottom: 8px; }
-    .subtitle { color: #666; margin-bottom: 20px; }
+    h2 {
+      margin-bottom: var(--space-2);
+      font-size: clamp(1.4rem, 1.4vw + 1.05rem, 1.9rem);
+      line-height: 1.2;
+    }
+    .subtitle {
+      color: var(--text-600);
+      margin-bottom: var(--space-5);
+      font-size: 1rem;
+    }
 
     input {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 14px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
+      padding: var(--space-3);
+      margin-bottom: var(--space-3);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-200);
     }
 
     button {
       width: 100%;
-      padding: 12px;
-      background: #667eea;
+      padding: var(--space-3);
+      background: var(--brand-500);
       color: #fff;
       border: none;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       cursor: pointer;
+      font-weight: 600;
     }
 
     button:disabled {
@@ -94,22 +103,27 @@ import { AuthService } from '../services/auth.service';
     }
 
     .error {
-      color: #d32f2f;
-      margin-bottom: 10px;
+      color: var(--danger-500);
+      margin-bottom: var(--space-2);
     }
 
     .success {
-      color: #2e7d32;
-      margin-bottom: 10px;
+      color: var(--success-700);
+      margin-bottom: var(--space-2);
     }
 
     .back {
-      margin-top: 16px;
+      margin-top: var(--space-4);
     }
 
     a {
-      color: #667eea;
+      color: var(--brand-500);
       text-decoration: none;
+    }
+
+    @media (max-width: 480px) {
+      .auth-container { padding: var(--space-4); }
+      .auth-card { padding: var(--space-6); }
     }
   `]
 })

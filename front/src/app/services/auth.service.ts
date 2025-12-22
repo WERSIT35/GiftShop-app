@@ -3,6 +3,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, tap } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 export interface RegisterRequest {
@@ -23,7 +24,9 @@ export interface AuthResponse {
   user?: {
     id: string;
     email: string;
-    name?: string;
+    name?: string | null;
+    role?: 'user' | 'admin' | string;
+    isEmailVerified?: boolean;
   };
   alreadyVerified?: boolean;
 }
@@ -31,8 +34,13 @@ export interface AuthResponse {
 @Injectable({
   providedIn: 'root',
 })
+
 export class AuthService {
   private readonly API_URL = '/api/auth';
+  private currentUserSubject = new BehaviorSubject<any>(null);
+  public get currentUserValue() {
+    return this.currentUserSubject?.value;
+  }
 
   constructor(private http: HttpClient) {}
 
@@ -98,6 +106,23 @@ export class AuthService {
       );
   }
 
+  // ME (CURRENT USER)
+  me(): Observable<AuthResponse> {
+    return this.http.get<AuthResponse>(`${this.API_URL}/me`).pipe(
+      tap((res) => {
+        if (res.status === 'success' && res.user) {
+          localStorage.setItem('user', JSON.stringify(res.user));
+        }
+      }),
+      catchError((err) =>
+        of({
+          status: 'error',
+          message: err.error?.message || 'Failed to fetch current user',
+        } as AuthResponse)
+      )
+    );
+  }
+
   // LOGOUT
   logout(): void {
     localStorage.removeItem('authToken');
@@ -110,7 +135,7 @@ export class AuthService {
   }
 
   // GET USER
-  getUser(): { id: string; email: string; name?: string } | null {
+  getUser(): { id: string; email: string; name?: string | null; role?: string; isEmailVerified?: boolean } | null {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
   }
@@ -119,4 +144,6 @@ export class AuthService {
   isAuthenticated(): boolean {
     return !!this.getToken();
   }
+
+  
 }

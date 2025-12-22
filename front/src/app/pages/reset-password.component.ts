@@ -54,37 +54,47 @@ import { AuthService } from '../services/auth.service';
       display: flex;
       justify-content: center;
       align-items: center;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: var(--bg-gradient);
+      padding: var(--space-5);
     }
 
     .auth-card {
-      background: white;
-      padding: 32px;
-      border-radius: 8px;
+      background: var(--surface-0);
+      padding: var(--space-8);
+      border-radius: var(--radius-md);
       width: 100%;
       max-width: 400px;
-      box-shadow: 0 15px 30px rgba(0,0,0,.2);
+      box-shadow: var(--shadow-lg);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: var(--space-6);
+      font-size: clamp(1.4rem, 1.4vw + 1.05rem, 1.9rem);
+      line-height: 1.2;
     }
 
     .form-group {
-      margin-bottom: 16px;
+      margin-bottom: var(--space-4);
     }
 
     input {
       width: 100%;
-      padding: 12px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
+      padding: var(--space-3);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-200);
+      font-size: 1rem;
     }
 
     button {
       width: 100%;
-      padding: 12px;
-      background: #667eea;
-      color: white;
+      padding: var(--space-3);
+      background: var(--brand-500);
+      color: var(--surface-0);
       border: none;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       cursor: pointer;
+      font-weight: 600;
     }
 
     button:disabled {
@@ -93,15 +103,20 @@ import { AuthService } from '../services/auth.service';
     }
 
     .error {
-      color: #e74c3c;
+      color: var(--danger-500);
       text-align: center;
-      margin-top: 10px;
+      margin-top: var(--space-2);
     }
 
     .success {
-      color: #27ae60;
+      color: var(--success-600);
       text-align: center;
-      margin-top: 10px;
+      margin-top: var(--space-2);
+    }
+
+    @media (max-width: 480px) {
+      .auth-container { padding: var(--space-4); }
+      .auth-card { padding: var(--space-6); }
     }
   `]
 })

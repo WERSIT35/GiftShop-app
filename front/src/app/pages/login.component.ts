@@ -86,32 +86,36 @@ import { AuthService } from '../services/auth.service';
       display: flex;
       justify-content: center;
       align-items: center;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: var(--bg-gradient);
+      padding: var(--space-5);
     }
 
     .auth-card {
-      background: #fff;
-      padding: 32px;
+      background: var(--surface-0);
+      padding: var(--space-8);
       width: 100%;
       max-width: 420px;
-      border-radius: 8px;
-      box-shadow: 0 15px 30px rgba(0,0,0,.2);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
     }
 
     h2 {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: var(--space-6);
+      font-size: clamp(1.5rem, 1.5vw + 1.1rem, 2rem);
+      line-height: 1.2;
     }
 
     .form-group {
-      margin-bottom: 16px;
+      margin-bottom: var(--space-4);
     }
 
     input {
       width: 100%;
-      padding: 12px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
+      padding: var(--space-3);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-200);
+      font-size: 1rem;
     }
 
     .password-wrapper {
@@ -127,24 +131,25 @@ import { AuthService } from '../services/auth.service';
       background: none;
       border: none;
       cursor: pointer;
-      font-size: 18px;
-      margin-left: -40px;
+      font-size: 1.1rem;
+      margin-left: -44px;
+      padding: 0 8px;
     }
 
     small {
-      color: #e74c3c;
+      color: var(--danger-500);
     }
 
     button[type="submit"] {
       width: 100%;
-      padding: 12px;
-      background: #667eea;
+      padding: var(--space-3);
+      background: var(--brand-500);
       color: #fff;
       border: none;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       font-weight: 600;
       cursor: pointer;
-      margin-top: 8px;
+      margin-top: var(--space-2);
     }
 
     button:disabled {
@@ -153,25 +158,39 @@ import { AuthService } from '../services/auth.service';
     }
 
     .error {
-      color: #e74c3c;
+      color: var(--danger-500);
       text-align: center;
-      margin-top: 8px;
+      margin-top: var(--space-2);
     }
 
     .links {
-      margin-top: 20px;
+      margin-top: var(--space-5);
       text-align: center;
-      font-size: 14px;
+      font-size: 0.95rem;
     }
 
     .links a {
-      color: #667eea;
+      color: var(--brand-500);
       text-decoration: none;
       font-weight: 600;
     }
 
     .links span {
       margin: 0 8px;
+    }
+
+    @media (max-width: 480px) {
+      .auth-container {
+        padding: var(--space-4);
+      }
+
+      .auth-card {
+        padding: var(--space-6);
+      }
+
+      .links {
+        font-size: 1rem;
+      }
     }
   `],
 })

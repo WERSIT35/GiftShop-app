@@ -67,33 +67,44 @@ import { AuthService, AuthResponse } from '../services/auth.service';
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      background: #f4f6fb;
+      background: var(--bg-gradient);
+      padding: var(--space-5);
     }
     .auth-card {
-      background: #fff;
-      padding: 32px;
+      background: var(--surface-0);
+      padding: var(--space-8);
       width: 100%;
       max-width: 420px;
-      border-radius: 8px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.1);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: var(--space-6);
+      font-size: clamp(1.5rem, 1.5vw + 1.1rem, 2rem);
+      line-height: 1.2;
     }
     label {
       display: block;
-      margin-bottom: 16px;
+      margin-bottom: var(--space-4);
     }
     input {
       width: 100%;
-      padding: 10px;
-      margin-top: 6px;
+      padding: var(--space-3);
+      margin-top: var(--space-2);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-200);
+      font-size: 1rem;
     }
     button[type="submit"] {
       width: 100%;
-      padding: 12px;
-      background: #667eea;
+      padding: var(--space-3);
+      background: var(--brand-500);
       color: #fff;
       border: none;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       cursor: pointer;
+      font-weight: 600;
     }
     button:disabled {
       opacity: .6;
@@ -103,14 +114,18 @@ import { AuthService, AuthResponse } from '../services/auth.service';
       gap: 6px;
     }
     .toggle {
-      padding: 10px;
-      font-size: 12px;
+      padding: 0 var(--space-3);
+      font-size: 0.95rem;
+      border: 1px solid var(--border-200);
+      background: var(--surface-1);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
     }
     .alert {
-      padding: 12px;
-      margin-bottom: 16px;
-      border-radius: 4px;
-      font-size: 14px;
+      padding: var(--space-3);
+      margin-bottom: var(--space-4);
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
     }
     .alert.error {
       background: #fdecea;
@@ -121,8 +136,18 @@ import { AuthService, AuthResponse } from '../services/auth.service';
       color: #1e8449;
     }
     .switch {
-      margin-top: 16px;
+      margin-top: var(--space-4);
       text-align: center;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 480px) {
+      .auth-container {
+        padding: var(--space-4);
+      }
+      .auth-card {
+        padding: var(--space-6);
+      }
     }
   `]
 })

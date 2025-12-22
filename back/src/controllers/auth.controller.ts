@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import crypto from "crypto";
 import jwt, { SignOptions } from "jsonwebtoken";
 import ms from "ms";
-import User from "../models/User.js";
-import sendEmail from "../utils/mailer.js";
+import User from "../models/User";
+import sendEmail from "../utils/mailer";
+import type { AuthRequest } from "../middlewares/auth.middleware";
 
 /* ======================
    JWT HELPERS
@@ -128,11 +129,13 @@ export const login = async (req: Request, res: Response) => {
 
     return res.json({
       status: "success",
+      message: "Login successful",
       token,
       user: {
         id: user._id,
         email: user.email,
         name: user.name ?? null,
+        role: user.role, // <-- Add this line
       },
     });
   } catch (err) {
@@ -186,6 +189,37 @@ export const verifyEmail = async (req: Request, res: Response) => {
       status: "error",
       message: "Internal server error",
     });
+  }
+};
+
+/* ======================
+   ME (CURRENT USER)
+====================== */
+export const me = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ status: "error", message: "Not authenticated" });
+    }
+
+    const user = await User.findById(req.userId).select("email name role isEmailVerified").exec();
+    if (!user) {
+      return res.status(401).json({ status: "error", message: "User not found" });
+    }
+
+    return res.json({
+      status: "success",
+      message: "OK",
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name ?? null,
+        role: user.role,
+        isEmailVerified: user.isEmailVerified,
+      },
+    });
+  } catch (err) {
+    console.error("ME ERROR:", err);
+    return res.status(500).json({ status: "error", message: "Internal server error" });
   }
 };
 

@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
+import User from "../models/User";
+
 const JWT_SECRET = process.env.JWT_SECRET || "changeme";
 
 export interface AuthRequest extends Request {
@@ -23,4 +25,14 @@ export const protect = (req: AuthRequest, res: Response, next: NextFunction) => 
   } catch (err) {
     return res.status(401).json({ message: "Invalid or expired token" });
   }
+};
+
+// Middleware to check for admin role
+export const isAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  if (!req.userId) return res.status(401).json({ message: "Not authenticated" });
+  const user = await User.findById(req.userId);
+  if (!user || user.role !== "admin") {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+  next();
 };

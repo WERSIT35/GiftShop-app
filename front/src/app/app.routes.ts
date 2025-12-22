@@ -4,8 +4,10 @@ import { LoginComponent } from './pages/login.component';
 import { VerifyComponent } from './pages/verify.component';
 import { HomeComponent } from './pages/home.component';
 import { authGuard } from './guards/auth.guard';
+import { AdminComponent } from './pages/admin.component';
 import { ForgotPasswordComponent } from './pages/forgot-password.component';
 import { ResetPasswordComponent } from './pages/reset-password.component';
+import { AdminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -20,6 +22,7 @@ export const routes: Routes = [
   // PROTECTED ROUTES
   { path: 'home', component: HomeComponent, canActivate: [authGuard] },
   { path: 'dashboard', component: HomeComponent, canActivate: [authGuard] },
+  { path: 'admin', component: AdminComponent, canActivate: [AdminGuard] },
   
 
 

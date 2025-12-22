@@ -7,9 +7,11 @@ import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 
-import authRoutes from "./routes/auth.routes.js";
-import productRoutes from "./routes/product.routes.js";
-import aiRoutes from "./routes/ai.routes.js";
+import authRoutes from "./routes/auth.routes";
+import productRoutes from "./routes/product.routes";
+import aiRoutes from "./routes/ai.routes";
+
+import adminRoutes from "./routes/admin.routes";
 
 const app = express();
 
@@ -110,15 +112,22 @@ app.get("/health", (req: Request, res: Response) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api", adminRoutes);
 
 /* ===========================
    404 handler
 =========================== */
 app.use((req: Request, res: Response) => {
+  function getGMT4ISOString() {
+    const date = new Date();
+    date.setHours(date.getHours() + 4);
+    return date.toISOString();
+  }
+
   res.status(404).json({
     error: "Not Found",
-    message: `Cannot ${req.method} ${req.path}`,
-    timestamp: new Date().toISOString(),
+    message: `Cannot GET ${req.originalUrl}`,
+    timestamp: getGMT4ISOString(),
   });
 });
 

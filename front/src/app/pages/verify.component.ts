@@ -34,37 +34,53 @@ import { Subject, takeUntil } from 'rxjs';
         justify-content: center;
         align-items: center;
         min-height: 100vh;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 20px;
+        background: var(--bg-gradient);
+        padding: var(--space-5);
       }
 
       .verify-card {
-        background: white;
-        border-radius: 8px;
-        padding: 40px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        background: var(--surface-0);
+        border-radius: var(--radius-md);
+        padding: var(--space-8);
+        box-shadow: var(--shadow-lg);
         width: 100%;
         max-width: 400px;
         text-align: center;
       }
 
       .status-icon {
-        font-size: 48px;
-        margin-bottom: 20px;
+        font-size: 3rem;
+        margin-bottom: var(--space-5);
+      }
+      h2 {
+        font-size: clamp(1.4rem, 1.4vw + 1.05rem, 1.9rem);
+        line-height: 1.2;
+        margin-bottom: var(--space-3);
       }
       .message {
-        margin-bottom: 20px;
-        color: #555;
+        margin-bottom: var(--space-5);
+        color: var(--text-600);
+        font-size: 1rem;
       }
       .btn-primary {
-        background-color: #667eea;
-        color: white;
+        background-color: var(--brand-500);
+        color: var(--surface-0);
         padding: 12px 24px;
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
         text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
       }
       .btn-primary:hover {
-        background-color: #5568d3;
+        background-color: var(--brand-700);
+      }
+
+      @media (max-width: 480px) {
+        .verify-container { padding: var(--space-4); }
+        .verify-card { padding: var(--space-6); }
       }
     `,
   ],

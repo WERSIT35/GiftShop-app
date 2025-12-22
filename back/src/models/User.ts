@@ -9,6 +9,8 @@ export interface IUser extends Document {
   password: string;
   name: string | null;
 
+  role: string; // 'user' | 'admin'
+
   isEmailVerified: boolean;
 
   verificationToken: string | null;
@@ -46,6 +48,12 @@ const UserSchema = new Schema<IUser>(
     name: {
       type: String,
       default: null,
+    },
+
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
     },
 
     isEmailVerified: {
