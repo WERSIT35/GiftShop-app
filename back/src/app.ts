@@ -75,6 +75,8 @@ const apiLimiter = rateLimit({
 });
 
 app.use("/api", apiLimiter);
+// Backward-compatible auth prefix (in case a proxy/frontend still uses /auth/*)
+app.use("/auth", apiLimiter);
 
 /* ===========================
    Body parsers
@@ -110,6 +112,7 @@ app.get("/health", (req: Request, res: Response) => {
    API routes
 =========================== */
 app.use("/api/auth", authRoutes);
+app.use("/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api", adminRoutes);
