@@ -1,36 +1,59 @@
 /* Global design tokens + responsive base typography */
 :root {
-    /* Existing palette (centralized, not new colors) */
-    --brand-500: #667eea;
-    --brand-700: #5568d3;
-    --accent-600: #764ba2;
+  --bg: #0b0b0c;
+  --bg-gradient: radial-gradient(1200px 800px at 20% 10%, #1c1c1e 0%, #0b0b0c 45%, #050506 100%);
+  --card: rgba(255, 255, 255, 0.10);
+  --card2: rgba(255, 255, 255, 0.06);
+  --text: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.70);
+  --border: rgba(255, 255, 255, 0.14);
 
-    --danger-500: #e74c3c;
-    --danger-700: #c0392b;
+  --brand: #0a84ff;
+  --radius: 16px;
 
-    --success-600: #27ae60;
-    --success-700: #2e7d32;
+  --shadow: 0 18px 55px rgba(0, 0, 0, 0.45);
+}
 
-    --surface-0: #ffffff;
-    --surface-1: #f4f6fb;
-    --border-200: #e6e8ef;
-    --text-900: #111827;
-    --text-600: #4b5563;
+/* Apple-like dark glass theme + spacing tokens used across components */
+:root {
+  /* spacing */
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
 
-    --radius-md: 8px;
-    --radius-sm: 4px;
+  /* radii */
+  --radius-sm: 10px;
+  --radius-md: 16px;
 
-    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 15px 30px rgba(0, 0, 0, 0.2);
+  /* surfaces */
+  --surface-0: rgba(255, 255, 255, 0.10);
+  --surface-1: rgba(255, 255, 255, 0.14);
+  --surface-2: rgba(0, 0, 0, 0.18);
 
-    --bg-gradient: linear-gradient(135deg, var(--brand-500) 0%, var(--accent-600) 100%);
+  /* text */
+  --text-900: rgba(255, 255, 255, 0.92);
+  --text-700: rgba(255, 255, 255, 0.78);
+  --text-600: rgba(255, 255, 255, 0.66);
 
-    --space-2: 8px;
-    --space-3: 12px;
-    --space-4: 16px;
-    --space-5: 20px;
-    --space-6: 24px;
-    --space-8: 32px;
+  /* borders */
+  --border-200: rgba(255, 255, 255, 0.14);
+
+  /* brand */
+  --brand-500: #0a84ff;
+  --brand-700: #0066cc;
+
+  /* status */
+  --danger-500: #ff453a;
+  --danger-700: #d70015;
+  --success-600: #32d74b;
+
+  /* background + shadows */
+  --bg-gradient: radial-gradient(1200px 800px at 20% 10%, #1c1c1e 0%, #0b0b0c 45%, #050506 100%);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 18px 55px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -47,13 +70,15 @@ html {
 }
 
 body {
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    line-height: 1.5;
-    color: var(--text-900);
-    background: var(--surface-1);
+  margin: 0;
+  height: 100%;
+  background: var(--bg-gradient);
+  color: var(--text-900);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Make form controls comfortable on touch devices */
 input,
 select,
 textarea,
@@ -72,7 +97,12 @@ button {
 }
 
 a {
-    color: var(--brand-500);
+  color: var(--brand-500);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 /* Shared layout primitives used by multiple pages */
@@ -102,4 +132,9 @@ a {
     .auth-card {
         padding: var(--space-6);
     }
+}
+
+:focus-visible {
+  outline: 2px solid rgba(10, 132, 255, 0.7);
+  outline-offset: 2px;
 }

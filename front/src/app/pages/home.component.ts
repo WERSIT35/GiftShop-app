@@ -8,123 +8,130 @@ import { AuthService } from '../services/auth.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="container">
-      <nav class="navbar">
-        <h1 class="logo">Gift Shop</h1>
-        <div class="nav-links">
-          <span class="user-info" *ngIf="userEmail">Welcome, {{ userEmail }}</span>
-          <button (click)="logout()" class="btn btn-logout">Logout</button>
+    <div class="page">
+      <nav class="nav">
+        <div class="brand">
+          <h1 class="logo">Gift Shop</h1>
+          <span class="pill" *ngIf="userEmail">Signed in as {{ userEmail }}</span>
+        </div>
+
+        <div class="actions">
+          <button (click)="logout()" class="btn danger">Logout</button>
         </div>
       </nav>
 
-      <main class="main-content">
-        <h2>Welcome to Gift Shop!</h2>
-        <p>You have successfully logged in.</p>
-        <p class="info">This is your dashboard. More features coming soon...</p>
+      <main class="main">
+        <section class="card">
+          <h2>Welcome back</h2>
+          <p class="muted">You have successfully logged in.</p>
+          <p class="muted">This is your dashboard. More features coming soon…</p>
+        </section>
       </main>
     </div>
   `,
   styles: [`
-    .container {
-      display: flex;
-      flex-direction: column;
+    .page {
       min-height: 100vh;
       background: var(--bg-gradient);
     }
 
-    .navbar {
-      background: rgba(0, 0, 0, 0.2);
-      padding: var(--space-5) var(--space-8);
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      justify-content: space-between;
       gap: var(--space-4);
+      padding: var(--space-5) var(--space-8);
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06));
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      backdrop-filter: blur(14px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      min-width: 0;
+      flex-wrap: wrap;
     }
 
     .logo {
-      color: white;
       margin: 0;
-      font-size: clamp(1.4rem, 1.3vw + 1.1rem, 1.8rem);
-      font-weight: 600;
+      font-size: clamp(1.25rem, 1.2vw + 1rem, 1.6rem);
+      letter-spacing: -0.02em;
+      font-weight: 800;
     }
 
-    .nav-links {
-      display: flex;
+    .pill {
+      display: inline-flex;
       align-items: center;
-      gap: var(--space-5);
-      flex-wrap: wrap;
-      justify-content: flex-end;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border-200);
+      background: rgba(0,0,0,0.18);
+      color: var(--text-700);
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .user-info {
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 1rem;
-    }
+    .actions { display: flex; gap: var(--space-3); }
 
     .btn {
-      padding: 8px 20px;
-      border: none;
-      border-radius: 4px;
-      font-weight: 600;
+      min-height: 44px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border-200);
+      background: rgba(255,255,255,0.10);
+      color: var(--text-900);
+      font-weight: 800;
       cursor: pointer;
-      transition: all 0.3s;
-      font-size: 1rem;
+      transition: transform 120ms ease, background 120ms ease;
+    }
+    .btn:hover { background: rgba(255,255,255,0.14); transform: translateY(-1px); }
+
+    .btn.danger {
+      border-color: rgba(255, 69, 58, 0.35);
+      background: rgba(255, 69, 58, 0.12);
+    }
+    .btn.danger:hover {
+      background: rgba(255, 69, 58, 0.18);
     }
 
-    .btn-logout {
-      background-color: var(--danger-500);
-      color: white;
+    .main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: var(--space-8);
     }
 
-    .btn-logout:hover {
-      background-color: var(--danger-700);
-      transform: translateY(-2px);
-    }
-
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 40px 20px;
-      text-align: center;
-      color: white;
+    .card {
+      border-radius: var(--radius-md);
+      padding: var(--space-8);
+      box-shadow: var(--shadow-lg);
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06));
+      border: 1px solid var(--border-200);
+      backdrop-filter: blur(14px);
     }
 
     h2 {
-      font-size: clamp(1.8rem, 3vw + 1.1rem, 2.6rem);
-      margin-bottom: 20px;
+      margin: 0 0 var(--space-4);
+      font-size: clamp(1.6rem, 2.5vw + 1rem, 2.3rem);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
     }
 
-    p {
-      font-size: 1.05rem;
-      margin: 10px 0;
-    }
-
-    .info {
-      font-size: 1rem;
-      opacity: 0.8;
-      margin-top: 30px;
-    }
+    .muted { color: var(--text-600); margin: 10px 0; }
 
     @media (max-width: 640px) {
-      .navbar {
-        padding: var(--space-4);
-        align-items: flex-start;
-      }
-
-      .nav-links {
-        width: 100%;
-        justify-content: space-between;
-        gap: var(--space-3);
-      }
-
-      .btn {
-        width: 100%;
-      }
+      .nav { padding: var(--space-4); }
+      .main { padding: var(--space-5); }
+      .btn { width: 100%; }
+      .actions { width: 100%; }
+      .nav { flex-direction: column; align-items: stretch; }
     }
   `]
 })

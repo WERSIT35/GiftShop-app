@@ -10,6 +10,7 @@ export class AdminService {
   private authHeaders(): { headers?: HttpHeaders } {
     const token = localStorage.getItem('authToken');
     if (!token) return {};
+
     return {
       headers: new HttpHeaders({
         Authorization: `Bearer ${token}`,
@@ -30,5 +31,9 @@ export class AdminService {
 
   updateUser(id: string, data: any): Observable<any> {
     return this.http.put<any>(`/api/users/${id}`, data, this.authHeaders()).pipe(timeout(8000));
+  }
+
+  continueWithGoogle(): void {
+    window.location.assign('/api/auth/google');
   }
 }

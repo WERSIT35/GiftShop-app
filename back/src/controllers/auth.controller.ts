@@ -26,7 +26,7 @@ function getJwtExpiresIn(): number | ms.StringValue {
   return "7d";
 }
 
-const signToken = (userId: string) => {
+export const signToken = (userId: string) => {
   if (!JWT_SECRET) {
     throw new Error("JWT_SECRET is not defined in environment variables.");
   }

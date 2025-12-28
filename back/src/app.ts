@@ -6,11 +6,13 @@ import helmet from "helmet";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
+import passport from "passport";
+
+import "./config/passport";
 
 import authRoutes from "./routes/auth.routes";
 import productRoutes from "./routes/product.routes";
 import aiRoutes from "./routes/ai.routes";
-
 import adminRoutes from "./routes/admin.routes";
 
 const app = express();
@@ -88,6 +90,11 @@ app.use(express.urlencoded({ extended: true }));
    Cookies
 =========================== */
 app.use(cookieParser());
+
+/* ===========================
+   Passport
+=========================== */
+app.use(passport.initialize());
 
 /* ===========================
    Health / Root

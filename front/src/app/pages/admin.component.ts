@@ -10,11 +10,13 @@ import { finalize, timeout } from 'rxjs/operators';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="admin-container">
-      <h2>Users List</h2>
-      <div *ngIf="loading">Loading users...</div>
+      <h2>Users</h2>
+
+      <div *ngIf="loading" class="muted">Loading users...</div>
       <div *ngIf="error" class="error">{{ error }}</div>
-        <div class="table-wrap" *ngIf="!loading && users && users.length">
-          <table>
+
+      <div class="table-wrap" *ngIf="!loading && users && users.length">
+        <table>
           <thead>
             <tr>
               <th>Email</th>
@@ -22,108 +24,164 @@ import { finalize, timeout } from 'rxjs/operators';
               <th>Role</th>
               <th>Email Verified</th>
               <th>Created At</th>
-              <th>Actions</th>
+              <th class="actions-col">Actions</th>
             </tr>
           </thead>
+
           <tbody>
             <tr *ngFor="let user of users; trackBy: trackByUserId">
-              <td>{{ user.email }}</td>
-              <td>
+              <td [attr.data-label]="'Email'">{{ user.email }}</td>
+
+              <td [attr.data-label]="'Name'">
                 <span *ngIf="!editRow || editRow !== user._id">{{ user.name }}</span>
                 <input *ngIf="editRow === user._id" [(ngModel)]="editUser.name" />
               </td>
-              <td>
+
+              <td [attr.data-label]="'Role'">
                 <span *ngIf="!editRow || editRow !== user._id">{{ user.role }}</span>
                 <select *ngIf="editRow === user._id" [(ngModel)]="editUser.role">
                   <option value="user">user</option>
                   <option value="admin">admin</option>
                 </select>
               </td>
-              <td>{{ user.isEmailVerified ? 'Yes' : 'No' }}</td>
-              <td>{{ user.createdAt | date:'short' }}</td>
-              <td>
+
+              <td [attr.data-label]="'Email Verified'">{{ user.isEmailVerified ? 'Yes' : 'No' }}</td>
+              <td [attr.data-label]="'Created'">{{ user.createdAt | date:'short' }}</td>
+
+              <td class="actions" [attr.data-label]="'Actions'">
                 <button (click)="onEdit(user)" *ngIf="!editRow || editRow !== user._id">Edit</button>
                 <button (click)="onSave(user)" *ngIf="editRow === user._id">Save</button>
                 <button (click)="onCancel()" *ngIf="editRow === user._id">Cancel</button>
-                <button (click)="onDelete(user)" style="color:red;">Delete</button>
+                <button (click)="onDelete(user)" class="danger">Delete</button>
               </td>
             </tr>
           </tbody>
-          </table>
-        </div>
-      <div *ngIf="!loading && users && !users.length">No users found.</div>
+        </table>
+      </div>
+
+      <div *ngIf="!loading && users && !users.length" class="muted">No users found.</div>
     </div>
   `,
   styles: [`
     .admin-container {
-      max-width: 980px;
-      margin: 40px auto;
-      background: var(--surface-0);
+      max-width: 1100px;
+      margin: 32px auto;
       border-radius: var(--radius-md);
       padding: var(--space-8);
       box-shadow: var(--shadow-md);
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06));
+      border: 1px solid var(--border-200);
+      backdrop-filter: blur(14px);
     }
 
     h2 {
-      margin-bottom: var(--space-6);
+      margin: 0 0 var(--space-6);
       font-size: clamp(1.4rem, 1.4vw + 1.05rem, 2rem);
       line-height: 1.2;
+      letter-spacing: -0.02em;
     }
+
+    .muted { color: var(--text-600); }
+    .error { color: var(--danger-500); margin-bottom: var(--space-4); }
 
     .table-wrap {
       width: 100%;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-      border: 1px solid var(--border-200);
-      border-radius: var(--radius-md);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      background: rgba(0,0,0,0.12);
     }
 
     table {
       width: 100%;
-      min-width: 780px;
       border-collapse: collapse;
-      margin-bottom: 0;
     }
 
     th, td {
-      padding: 12px;
-      border-bottom: 1px solid var(--border-200);
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
       text-align: left;
       font-size: 1rem;
       vertical-align: middle;
+      color: var(--text-900);
     }
 
     th {
-      background: var(--surface-1);
-      font-weight: 700;
+      background: rgba(255,255,255,0.06);
+      color: var(--text-700);
+      font-weight: 800;
     }
 
     input, select {
       width: 100%;
-      padding: 10px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-200);
-      font-size: 1rem;
-      background: var(--surface-0);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.18);
+      color: var(--text-900);
+    }
+
+    .actions-col { width: 260px; }
+    .actions {
+      white-space: nowrap;
     }
 
     button {
-      padding: 10px 12px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-200);
-      background: var(--surface-1);
+      min-height: 40px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.10);
+      color: var(--text-900);
       cursor: pointer;
-      font-weight: 600;
-      font-size: 1rem;
+      font-weight: 800;
       margin-right: 8px;
+      margin-bottom: 6px;
     }
 
-    .error { color: var(--danger-500); margin-bottom: var(--space-4); }
+    button.danger {
+      border-color: rgba(255, 69, 58, 0.35);
+      background: rgba(255, 69, 58, 0.12);
+      color: rgba(255, 255, 255, 0.92);
+    }
 
-    @media (max-width: 640px) {
+    @media (max-width: 720px) {
       .admin-container {
         margin: 16px;
         padding: var(--space-6);
+      }
+
+      /* Turn rows into stacked cards */
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+
+      tr {
+        border-bottom: 1px solid rgba(255,255,255,0.12);
+        padding: 10px 0;
+      }
+
+      td {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: 10px;
+        border-bottom: none;
+        padding: 10px 14px;
+      }
+
+      td::before {
+        content: attr(data-label);
+        color: var(--text-600);
+        font-weight: 800;
+      }
+
+      .actions {
+        white-space: normal;
+      }
+
+      .actions button {
+        width: 100%;
+        margin-right: 0;
       }
     }
   `]
@@ -132,30 +190,22 @@ export class AdminComponent implements OnInit {
   users: any[] = [];
   loading = false;
   error = '';
-    editRow: string | null = null;
-    editUser: any = {};
+  editRow: string | null = null;
+  editUser: any = {};
   private adminService = inject(AdminService);
   private cdr = inject(ChangeDetectorRef);
 
   private refreshUi(): void {
-    try {
-      this.cdr.detectChanges();
-    } catch {
-      // ignore if view is destroyed during navigation
-    }
+    try { this.cdr.detectChanges(); } catch {}
   }
 
-  ngOnInit() {
-    this.fetchUsers();
-  }
+  ngOnInit() { this.fetchUsers(); }
 
   fetchUsers() {
     this.loading = true;
     this.error = '';
     this.refreshUi();
 
-    // Absolute failsafe: if something prevents the HTTP observable from ever resolving,
-    // stop showing an infinite spinner and surface a useful message.
     const watchdog = window.setTimeout(() => {
       if (this.loading) {
         this.loading = false;
@@ -163,8 +213,6 @@ export class AdminComponent implements OnInit {
         this.refreshUi();
       }
     }, 9000);
-
-    console.log('Fetching users from /api/users...');
 
     this.adminService
       .getUsers()
@@ -178,13 +226,8 @@ export class AdminComponent implements OnInit {
       )
       .subscribe({
         next: (res: any) => {
-          console.log('Admin users API response:', res);
-          if (res && Array.isArray(res.users)) {
-            this.users = res.users;
-          } else {
-            this.users = [];
-            this.error = 'API did not return users array.';
-          }
+          if (res && Array.isArray(res.users)) this.users = res.users;
+          else { this.users = []; this.error = 'API did not return users array.'; }
           this.refreshUi();
         },
         error: (err: any) => {
@@ -199,26 +242,13 @@ export class AdminComponent implements OnInit {
       });
   }
 
-  onEdit(user: any) {
-    this.editRow = user._id;
-    this.editUser = { ...user };
-  }
-
-  onCancel() {
-    this.editRow = null;
-    this.editUser = {};
-  }
+  onEdit(user: any) { this.editRow = user._id; this.editUser = { ...user }; }
+  onCancel() { this.editRow = null; this.editUser = {}; }
 
   onSave(user: any) {
     this.adminService.updateUser(user._id, this.editUser).subscribe({
-      next: () => {
-        this.editRow = null;
-        this.editUser = {};
-        this.fetchUsers();
-      },
-      error: (err: any) => {
-        this.error = err.error?.message || 'Failed to update user';
-      }
+      next: () => { this.editRow = null; this.editUser = {}; this.fetchUsers(); },
+      error: (err: any) => { this.error = err.error?.message || 'Failed to update user'; }
     });
   }
 
@@ -226,14 +256,10 @@ export class AdminComponent implements OnInit {
     if (confirm(`Delete user ${user.email}?`)) {
       this.adminService.deleteUser(user._id).subscribe({
         next: () => this.fetchUsers(),
-        error: (err: any) => {
-          this.error = err.error?.message || 'Failed to delete user';
-        }
+        error: (err: any) => { this.error = err.error?.message || 'Failed to delete user'; }
       });
     }
   }
 
-  trackByUserId(index: number, user: any) {
-    return user._id;
-  }
+  trackByUserId(index: number, user: any) { return user._id; }
 }
