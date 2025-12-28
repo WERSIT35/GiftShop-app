@@ -59,15 +59,22 @@ import User from "./models/User";
 async function ensureSuperUser() {
   const email = process.env.SUPERUSER_EMAIL;
   const password = process.env.SUPERUSER_PASSWORD;
-  const role = process.env.SUPERUSER_ROLE || "admin";
+
+  // ✅ Narrow env string -> "user" | "admin"
+  const role: "user" | "admin" =
+    process.env.SUPERUSER_ROLE === "user" || process.env.SUPERUSER_ROLE === "admin"
+      ? process.env.SUPERUSER_ROLE
+      : "admin";
+
   if (!email || !password) {
     console.warn("No SUPERUSER_EMAIL or SUPERUSER_PASSWORD in env, skipping super user creation.");
     return;
   }
+
   const existing = await User.findOne({ email });
   if (existing) {
     if (existing.role !== role) {
-      existing.role = role;
+      existing.role = role; // ✅ now matches type
       await existing.save();
       console.log(`Super user role updated for ${email}`);
     } else {
@@ -75,13 +82,15 @@ async function ensureSuperUser() {
     }
     return;
   }
+
   const user = new User({
     email,
     password,
     name: "Super Admin",
-    role,
+    role, // ✅ now matches type
     isEmailVerified: true,
   });
+
   await user.save();
   console.log(`Super user created: ${email}`);
 }

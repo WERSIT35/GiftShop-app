@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, Document } from "mongoose";
+import { Schema, model, Document } from "mongoose";
 import bcrypt from "bcrypt";
 
 /* =========================
@@ -6,12 +6,14 @@ import bcrypt from "bcrypt";
 ========================= */
 export interface IUser extends Document {
   email: string;
-  password: string;
+  password?: string; // 🔑 optional (Google users)
   name: string | null;
 
-  role: string; // 'user' | 'admin'
+  role: "user" | "admin";
 
   isEmailVerified: boolean;
+
+  googleId?: string; // 🆕 Google OAuth
 
   verificationToken: string | null;
   verificationTokenExpires: Date | null;
@@ -39,10 +41,11 @@ const UserSchema = new Schema<IUser>(
       index: true,
     },
 
+    // 🔑 Optional because of Google OAuth
     password: {
       type: String,
-      required: true,
-      select: false, // ⛔ never returned unless explicitly selected
+      required: false,
+      select: false,
     },
 
     name: {
@@ -52,13 +55,20 @@ const UserSchema = new Schema<IUser>(
 
     role: {
       type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
+      enum: ["user", "admin"],
+      default: "user",
     },
 
     isEmailVerified: {
       type: Boolean,
       default: false,
+    },
+
+    // 🆕 Google OAuth ID
+    googleId: {
+      type: String,
+      default: null,
+      index: true,
     },
 
     verificationToken: {
@@ -97,6 +107,9 @@ const UserSchema = new Schema<IUser>(
    PASSWORD HASHING
 ========================= */
 UserSchema.pre<IUser>("save", async function () {
+  // No password (Google user)
+  if (!this.password) return;
+
   if (!this.isModified("password")) return;
 
   const salt = await bcrypt.genSalt(10);
@@ -111,6 +124,7 @@ UserSchema.pre<IUser>("save", async function () {
 UserSchema.methods.comparePassword = async function (
   candidate: string
 ): Promise<boolean> {
+  if (!this.password) return false;
   return bcrypt.compare(candidate, this.password);
 };
 

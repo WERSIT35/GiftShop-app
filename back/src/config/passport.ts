@@ -1,33 +1,14 @@
 import passport from "passport";
-import { Strategy as GoogleStrategy, type Profile, type VerifyCallback } from "passport-google-oauth20";
-import User from "../models/User";
+import { Strategy as GoogleStrategy, Profile, VerifyCallback } from "passport-google-oauth20";
+import User, { IUser } from "../models/User";
 
-// Fail fast if required env vars are missing (prevents runtime "undefined" config)
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL;
 
-// Prefer an explicit env callback URL; fall back to your current route.
-const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL ?? "/api/auth/google/callback";
-
-if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
-  throw new Error("Missing GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET environment variables.");
+if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_CALLBACK_URL) {
+  throw new Error("Missing Google OAuth environment variables");
 }
-
-function assertNonEmptyArray<T>(arr: readonly T[]): asserts arr is readonly [T, ...T[]] {
-  if (arr.length === 0) throw new Error("User.create() returned an empty array.");
-}
-
-// Normalize Mongoose create() return type (it can be Doc or Doc[] depending on overload inference)
-function firstOrSelf<T>(value: T | readonly T[]): T {
-  if (Array.isArray(value)) {
-    if (value.length === 0) {
-      throw new Error("User.create() returned an empty array.");
-    }
-    return value[0] as T;
-  }
-  return value as T;
-}
-
 
 passport.use(
   new GoogleStrategy(
@@ -36,55 +17,51 @@ passport.use(
       clientSecret: GOOGLE_CLIENT_SECRET,
       callbackURL: GOOGLE_CALLBACK_URL,
     },
-    async (_accessToken: string, _refreshToken: string, profile: Profile, done: VerifyCallback) => {
+    async (_accessToken, _refreshToken, profile: Profile, done) => {
       try {
+        console.log("🟢 GOOGLE STRATEGY HIT");
+
         const email = profile.emails?.[0]?.value?.toLowerCase();
-        if (!email) return done(null, false);
+        if (!email) {
+          console.error("❌ Google profile has no email");
+          return done(null, false);
+        }
 
         let user = await User.findOne({ email });
 
         if (!user) {
-          // Work around mismatched/unfinished User typings (googleId/isVerified)
-          const createPayload = {
+          user = await User.create({
             email,
-            name: profile.displayName,
+            name: profile.displayName ?? null,
             googleId: profile.id,
-            isVerified: true,
-          } as const;
-
-          // Force a stable return type (Doc | Doc[]) without TS overload noise
-          const created = await (User as any).create(createPayload);
-          user = firstOrSelf(created);
+            isEmailVerified: true, // ✅ FIXED field name
+          });
         } else {
-          const updates: Record<string, unknown> = {};
+          let changed = false;
 
-          if (!(user as any).googleId) updates.googleId = profile.id;
-          if (!(user as any).name && profile.displayName) updates.name = profile.displayName;
-          if ((user as any).isVerified !== true) updates.isVerified = true;
-
-          if (Object.keys(updates).length > 0) {
-            await (User as any).updateOne({ _id: (user as any)._id }, { $set: updates });
-            user = await User.findById((user as any)._id);
+          if (!user.googleId) {
+            user.googleId = profile.id;
+            changed = true;
           }
+          if (!user.isEmailVerified) {
+            user.isEmailVerified = true; // ✅ FIXED field name
+            changed = true;
+          }
+          if (!user.name && profile.displayName) {
+            user.name = profile.displayName;
+            changed = true;
+          }
+
+          if (changed) await user.save();
         }
 
-        return done(null, user ?? false);
+        return done(null, user as IUser);
       } catch (err) {
+        console.error("[auth] Google OAuth verify error:", err);
         return done(err as Error);
       }
     }
   )
 );
-
-// If you use sessions with passport, these prevent "Failed to serialize user".
-passport.serializeUser((user: any, done) => done(null, user?.id ?? user?._id));
-passport.deserializeUser(async (id: string, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user ?? false);
-  } catch (err) {
-    done(err as Error);
-  }
-});
 
 export default passport;
