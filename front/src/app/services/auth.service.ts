@@ -73,7 +73,7 @@ export class AuthService {
 
   // RESET PASSWORD
   resetPassword(data: { token: string; password: string }) {
-    return this.http.post<any>('/api/auth/reset-password', data);
+    return this.http.post<any>(`${this.API_URL}/reset-password`, data);
   }
 
   // LOGIN

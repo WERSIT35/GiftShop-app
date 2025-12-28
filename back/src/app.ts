@@ -42,7 +42,7 @@ const allowedOrigins = [
   FRONTEND_URL,
   "http://localhost",
   "http://127.0.0.1",
-  "http://192.168.0.19", // 🔥 your LAN IP
+  "http://192.168.0.16", // 🔥 your LAN IP
 ];
 
 app.use(
