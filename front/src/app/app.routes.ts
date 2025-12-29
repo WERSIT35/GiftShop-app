@@ -8,6 +8,7 @@ import { AdminComponent } from './pages/admin.component';
 import { ForgotPasswordComponent } from './pages/forgot-password.component';
 import { ResetPasswordComponent } from './pages/reset-password.component';
 import { AdminGuard } from './guards/admin.guard';
+import { ProfileComponent } from './pages/profile.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -22,6 +23,7 @@ export const routes: Routes = [
   // PROTECTED ROUTES
   { path: 'home', component: HomeComponent, canActivate: [authGuard] },
   { path: 'dashboard', component: HomeComponent, canActivate: [authGuard] },
+  { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
   { path: 'admin', component: AdminComponent, canActivate: [AdminGuard] },
   
 

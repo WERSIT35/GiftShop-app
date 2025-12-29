@@ -55,6 +55,17 @@ import connectDB from "./config/db";
 
 // Super user creation
 import User from "./models/User";
+import { computePinLookup, generateRandomNumericPin } from "./utils/pin";
+
+async function generateUniquePinCode(length = 6, maxAttempts = 25): Promise<string> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const pin = generateRandomNumericPin(length);
+    const lookup = computePinLookup(pin);
+    const exists = await User.findOne({ pinCodeLookup: lookup }).select("_id").lean().exec();
+    if (!exists) return pin;
+  }
+  throw new Error("Failed to generate a unique PIN code. Please try again.");
+}
 
 async function ensureSuperUser() {
   const email = process.env.SUPERUSER_EMAIL;
@@ -80,6 +91,18 @@ async function ensureSuperUser() {
     } else {
       console.log("Super user already exists.");
     }
+
+    // Backfill PIN for legacy superuser
+    const existingWithPin = await User.findById(existing._id)
+      .select("+pinCodeEncrypted")
+      .exec();
+    if (existingWithPin && !(existingWithPin as any).pinCodeEncrypted) {
+      const pin = await generateUniquePinCode();
+      await (existingWithPin as any).setPinCode(pin);
+      await existingWithPin.save();
+      console.log(`Super user PIN generated for ${email}`);
+    }
+
     return;
   }
 
@@ -90,6 +113,9 @@ async function ensureSuperUser() {
     role, // ✅ now matches type
     isEmailVerified: true,
   });
+
+  const pin = await generateUniquePinCode();
+  await (user as any).setPinCode(pin);
 
   await user.save();
   console.log(`Super user created: ${email}`);

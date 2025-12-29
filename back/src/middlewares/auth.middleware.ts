@@ -11,7 +11,7 @@ export interface AuthRequest extends Request {
   userId?: string;
 }
 
-export const protect = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const header = req.headers.authorization;
   if (!header) return res.status(401).json({ message: "No authorization header" });
 
@@ -21,7 +21,32 @@ export const protect = (req: AuthRequest, res: Response, next: NextFunction) => 
   try {
     const payload = jwt.verify(token, JWT_SECRET) as any;
     req.userId = payload.id;
-    next();
+
+    // Activity + IP tracking for authenticated users
+    try {
+      const forwarded = req.headers["x-forwarded-for"];
+      const forwardedIp = Array.isArray(forwarded)
+        ? forwarded[0]
+        : typeof forwarded === "string"
+          ? forwarded.split(",")[0]?.trim()
+          : null;
+
+      const ip = forwardedIp || req.ip || null;
+      if (req.userId) {
+        const update: any = { $set: { lastSeenAt: new Date() } };
+
+        if (ip) {
+          update.$set.lastIp = ip;
+          update.$addToSet = { ipAddresses: ip };
+        }
+
+        await User.findByIdAndUpdate(req.userId, update, { new: false }).exec();
+      }
+    } catch {
+      // ignore tracking errors
+    }
+
+    return next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid or expired token" });
   }

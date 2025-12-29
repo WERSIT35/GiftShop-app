@@ -1,6 +1,17 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy, Profile, VerifyCallback } from "passport-google-oauth20";
 import User, { IUser } from "../models/User";
+import { computePinLookup, generateRandomNumericPin } from "../utils/pin";
+
+async function generateUniquePinCode(length = 6, maxAttempts = 25): Promise<string> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const pin = generateRandomNumericPin(length);
+    const lookup = computePinLookup(pin);
+    const exists = await User.findOne({ pinCodeLookup: lookup }).select("_id").lean().exec();
+    if (!exists) return pin;
+  }
+  throw new Error("Failed to generate a unique PIN code. Please try again.");
+}
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -27,15 +38,22 @@ passport.use(
           return done(null, false);
         }
 
+        const avatarUrl = profile.photos?.[0]?.value ?? null;
+
         let user = await User.findOne({ email });
 
         if (!user) {
-          user = await User.create({
+          user = new User({
             email,
             name: profile.displayName ?? null,
             googleId: profile.id,
             isEmailVerified: true, // ✅ FIXED field name
+            avatarUrl,
           });
+
+          const pin = await generateUniquePinCode();
+          await (user as any).setPinCode(pin);
+          await user.save();
         } else {
           let changed = false;
 
@@ -49,6 +67,11 @@ passport.use(
           }
           if (!user.name && profile.displayName) {
             user.name = profile.displayName;
+            changed = true;
+          }
+
+          if (!user.avatarUrl && avatarUrl) {
+            user.avatarUrl = avatarUrl;
             changed = true;
           }
 

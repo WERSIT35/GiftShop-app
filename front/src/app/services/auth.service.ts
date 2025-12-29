@@ -27,6 +27,7 @@ export interface AuthResponse {
     name?: string | null;
     role?: 'user' | 'admin' | string;
     isEmailVerified?: boolean;
+    avatarUrl?: string | null;
   };
   alreadyVerified?: boolean;
 }
@@ -135,7 +136,14 @@ export class AuthService {
   }
 
   // GET USER
-  getUser(): { id: string; email: string; name?: string | null; role?: string; isEmailVerified?: boolean } | null {
+  getUser(): {
+    id: string;
+    email: string;
+    name?: string | null;
+    role?: string;
+    isEmailVerified?: boolean;
+    avatarUrl?: string | null;
+  } | null {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
   }

@@ -1,5 +1,6 @@
 import { Schema, model, Document } from "mongoose";
 import bcrypt from "bcrypt";
+import { computePinLookup, encryptPin } from "../utils/pin";
 
 /* =========================
    USER INTERFACE
@@ -8,6 +9,12 @@ export interface IUser extends Document {
   email: string;
   password?: string; // 🔑 optional (Google users)
   name: string | null;
+
+  avatarUrl: string | null;
+
+  lastIp?: string | null;
+  ipAddresses?: string[];
+  lastSeenAt?: Date | null;
 
   role: "user" | "admin";
 
@@ -22,6 +29,8 @@ export interface IUser extends Document {
   resetPasswordExpires: Date | null;
 
   pinCode: string | null;
+  pinCodeLookup?: string | null;
+  pinCodeEncrypted?: string | null;
 
   comparePassword(candidate: string): Promise<boolean>;
   setPinCode(pin: string): Promise<void>;
@@ -50,6 +59,26 @@ const UserSchema = new Schema<IUser>(
 
     name: {
       type: String,
+      default: null,
+    },
+
+    avatarUrl: {
+      type: String,
+      default: null,
+    },
+
+    lastIp: {
+      type: String,
+      default: null,
+    },
+
+    ipAddresses: {
+      type: [String],
+      default: [],
+    },
+
+    lastSeenAt: {
+      type: Date,
       default: null,
     },
 
@@ -99,6 +128,23 @@ const UserSchema = new Schema<IUser>(
       default: null,
       select: false,
     },
+
+    // 🔐 PIN (encrypted for admin display)
+    pinCodeEncrypted: {
+      type: String,
+      default: null,
+      select: false,
+    },
+
+    // 🔎 Deterministic lookup hash for uniqueness checks
+    pinCodeLookup: {
+      type: String,
+      default: null,
+      unique: true,
+      sparse: true,
+      index: true,
+      select: false,
+    },
   },
   { timestamps: true }
 );
@@ -134,6 +180,8 @@ UserSchema.methods.setPinCode = async function (
 ): Promise<void> {
   const salt = await bcrypt.genSalt(10);
   this.pinCode = await bcrypt.hash(pin, salt);
+  this.pinCodeLookup = computePinLookup(pin);
+  this.pinCodeEncrypted = encryptPin(pin);
 };
 
 // 🔐 Compare PIN

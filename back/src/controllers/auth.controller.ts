@@ -5,6 +5,17 @@ import ms from "ms";
 import User from "../models/User";
 import sendEmail from "../utils/mailer";
 import type { AuthRequest } from "../middlewares/auth.middleware";
+import { computePinLookup, generateRandomNumericPin } from "../utils/pin";
+
+async function generateUniquePinCode(length = 6, maxAttempts = 25): Promise<string> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const pin = generateRandomNumericPin(length);
+    const lookup = computePinLookup(pin);
+    const exists = await User.findOne({ pinCodeLookup: lookup }).select("_id").lean().exec();
+    if (!exists) return pin;
+  }
+  throw new Error("Failed to generate a unique PIN code. Please try again.");
+}
 
 /* ======================
    JWT HELPERS
@@ -58,7 +69,7 @@ export const register = async (req: Request, res: Response) => {
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
 
-    const user = await User.create({
+    const user = new User({
       email,
       password,
       name,
@@ -66,6 +77,10 @@ export const register = async (req: Request, res: Response) => {
       verificationToken,
       verificationTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
+
+    const pin = await generateUniquePinCode();
+    await (user as any).setPinCode(pin);
+    await user.save();
 
     const verifyUrl = `${
       process.env.FRONTEND_URL
@@ -136,6 +151,7 @@ export const login = async (req: Request, res: Response) => {
         email: user.email,
         name: user.name ?? null,
         role: user.role, // <-- Add this line
+        avatarUrl: (user as any).avatarUrl ?? null,
       },
     });
   } catch (err) {
@@ -201,7 +217,9 @@ export const me = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ status: "error", message: "Not authenticated" });
     }
 
-    const user = await User.findById(req.userId).select("email name role isEmailVerified").exec();
+    const user = await User.findById(req.userId)
+      .select("email name role isEmailVerified avatarUrl")
+      .exec();
     if (!user) {
       return res.status(401).json({ status: "error", message: "User not found" });
     }
@@ -215,6 +233,7 @@ export const me = async (req: AuthRequest, res: Response) => {
         name: user.name ?? null,
         role: user.role,
         isEmailVerified: user.isEmailVerified,
+        avatarUrl: (user as any).avatarUrl ?? null,
       },
     });
   } catch (err) {

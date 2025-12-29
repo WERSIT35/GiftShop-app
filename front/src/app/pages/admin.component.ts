@@ -19,8 +19,11 @@ import { finalize, timeout } from 'rxjs/operators';
         <table>
           <thead>
             <tr>
+              <th>Online</th>
               <th>Email</th>
               <th>Name</th>
+              <th>PIN</th>
+              <th>Last Seen</th>
               <th>Role</th>
               <th>Email Verified</th>
               <th>Created At</th>
@@ -30,12 +33,31 @@ import { finalize, timeout } from 'rxjs/operators';
 
           <tbody>
             <tr *ngFor="let user of users; trackBy: trackByUserId">
-              <td [attr.data-label]="'Email'">{{ user.email }}</td>
+              <td [attr.data-label]="'Online'">
+                <span
+                  class="status-dot"
+                  [class.online]="user.online"
+                  [class.offline]="!user.online"
+                  [attr.title]="user.online ? 'Online' : 'Offline'"
+                  aria-hidden="true"
+                ></span>
+              </td>
+
+              <td [attr.data-label]="'Email'">
+                <div class="cell">
+                  <div>{{ user.email }}</div>
+                  <div class="sub mono" *ngIf="user.lastIp">IP: {{ user.lastIp }}</div>
+                </div>
+              </td>
 
               <td [attr.data-label]="'Name'">
                 <span *ngIf="!editRow || editRow !== user._id">{{ user.name }}</span>
                 <input *ngIf="editRow === user._id" [(ngModel)]="editUser.name" />
               </td>
+
+              <td [attr.data-label]="'PIN'">{{ user.pinCode || '-' }}</td>
+
+              <td [attr.data-label]="'Last Seen'">{{ user.lastSeenAt ? (user.lastSeenAt | date:'short') : '-' }}</td>
 
               <td [attr.data-label]="'Role'">
                 <span *ngIf="!editRow || editRow !== user._id">{{ user.role }}</span>
@@ -64,8 +86,9 @@ import { finalize, timeout } from 'rxjs/operators';
   `,
   styles: [`
     .admin-container {
-      max-width: 1100px;
-      margin: 32px auto;
+      max-width: none;
+      width: calc(100% - 32px);
+      margin: 16px auto;
       border-radius: var(--radius-md);
       padding: var(--space-8);
       box-shadow: var(--shadow-md);
@@ -99,13 +122,30 @@ import { finalize, timeout } from 'rxjs/operators';
     }
 
     th, td {
-      padding: 12px 14px;
+      padding: 10px 12px;
       border-bottom: 1px solid rgba(255,255,255,0.10);
       text-align: left;
       font-size: 1rem;
       vertical-align: middle;
       color: var(--text-900);
     }
+
+    .status-dot {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.04);
+    }
+    .status-dot.online { background: var(--success-600); }
+    .status-dot.offline { background: var(--danger-500); }
+
+    .cell { display: grid; gap: 4px; }
+    .sub { font-size: 0.85rem; color: var(--text-600); }
+
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .small { font-size: 0.9rem; color: var(--text-700); }
 
     th {
       background: rgba(255,255,255,0.06);
@@ -122,7 +162,7 @@ import { finalize, timeout } from 'rxjs/operators';
       color: var(--text-900);
     }
 
-    .actions-col { width: 260px; }
+    .actions-col { width: 240px; }
     .actions {
       white-space: nowrap;
     }

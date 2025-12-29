@@ -16,6 +16,7 @@ import { AuthService } from '../services/auth.service';
         </div>
 
         <div class="actions">
+          <button (click)="goProfile()" class="btn">Profile</button>
           <button (click)="logout()" class="btn danger">Logout</button>
         </div>
       </nav>
@@ -149,5 +150,9 @@ export class HomeComponent {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  goProfile(): void {
+    this.router.navigate(['/profile']);
   }
 }
