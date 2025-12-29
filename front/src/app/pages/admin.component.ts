@@ -61,14 +61,24 @@ import { finalize, timeout } from 'rxjs/operators';
               <td [attr.data-label]="'Last Seen'">{{ user.lastSeenAt ? (user.lastSeenAt | date:'short') : '-' }}</td>
 
               <td [attr.data-label]="'Role'">
-                <span *ngIf="!editRow || editRow !== user._id">{{ user.role }}</span>
+                <span *ngIf="!editRow || editRow !== user._id" class="badge" [class.badge-admin]="user.role === 'admin'">{{ user.role }}</span>
                 <select *ngIf="editRow === user._id" [(ngModel)]="editUser.role">
                   <option value="user">user</option>
                   <option value="admin">admin</option>
                 </select>
               </td>
 
-              <td [attr.data-label]="'Email Verified'">{{ user.isEmailVerified ? 'Yes' : 'No' }}</td>
+              <td [attr.data-label]="'Email Verified'">
+                <span class="pill" [class.ok]="user.isEmailVerified" [class.bad]="!user.isEmailVerified" [attr.title]="user.isEmailVerified ? 'Verified' : 'Not verified'">
+                  <svg *ngIf="user.isEmailVerified" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                    <path fill="currentColor" d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                  </svg>
+                  <svg *ngIf="!user.isEmailVerified" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                    <path fill="currentColor" d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.71 2.88 18.3 9.17 12 2.88 5.71 4.29 4.29 10.59 10.6l6.3-6.3z"/>
+                  </svg>
+                  {{ user.isEmailVerified ? 'Verified' : 'Not verified' }}
+                </span>
+              </td>
               <td [attr.data-label]="'Created'">{{ user.createdAt | date:'short' }}</td>
 
               <td class="actions" [attr.data-label]="'Actions'">
@@ -126,35 +136,64 @@ import { finalize, timeout } from 'rxjs/operators';
                 <button
                   class="icon view"
                   (click)="toggleDetails(user)"
-                  [attr.aria-label]="expandedUserId === user._id ? 'Hide details' : 'View details'"
-                  [attr.title]="expandedUserId === user._id ? 'Hide details' : 'View details'"
+                  [attr.aria-label]="isExpanded(user._id) ? 'Hide details' : 'View details'"
+                  [attr.title]="isExpanded(user._id) ? 'Hide details' : 'View details'"
                   type="button"
                 >
-                  <svg *ngIf="expandedUserId !== user._id" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  <svg *ngIf="!isExpanded(user._id)" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
                     <path fill="currentColor" d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/>
                   </svg>
-                  <svg *ngIf="expandedUserId === user._id" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  <svg *ngIf="isExpanded(user._id)" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
                     <path fill="currentColor" d="M3.27 2 2 3.27l3.06 3.06C3.07 8.1 2 10 2 10s3 7 10 7c2.06 0 3.83-.6 5.3-1.45l3.43 3.43L22 17.73 3.27 2ZM12 15c-2.76 0-5-2.24-5-5 0-.85.22-1.65.6-2.35l1.62 1.62A3 3 0 0 0 12 13c.63 0 1.22-.2 1.7-.54l1.62 1.62c-.7.38-1.5.6-2.32.6Zm9.73-5s-1.1 2.56-3.63 4.51l-1.44-1.44A8.82 8.82 0 0 0 19.7 10c-1.05-1.63-3.4-4-7.7-4-.9 0-1.73.11-2.5.3L7.94 4.74C9.16 4.27 10.5 4 12 4c7 0 10 6 10 6Z"/>
                   </svg>
                 </button>
               </td>
             </tr>
 
-            <tr *ngIf="expandedUserId === user._id || closingUserId === user._id" class="details-row">
+            <tr *ngIf="isExpanded(user._id) || isClosing(user._id)" class="details-row">
               <td [attr.colspan]="9">
-                <div class="details details-animate" [class.closing]="closingUserId === user._id && expandedUserId !== user._id">
+                <div class="details details-animate" [class.closing]="isClosing(user._id) && !isExpanded(user._id)">
                   <div class="details-inner">
                     <div class="details-head">
-                      <img
-                        *ngIf="user.avatarUrl"
-                        class="avatar"
-                        [src]="user.avatarUrl"
-                        alt="User avatar"
-                        referrerpolicy="no-referrer"
-                      />
-                      <div class="details-title">
-                        <div class="primary">{{ user.name || 'Unnamed user' }}</div>
-                        <div class="secondary">{{ user.email }}</div>
+                      <div class="identity">
+                        <img
+                          *ngIf="user.avatarUrl"
+                          class="avatar"
+                          [src]="user.avatarUrl"
+                          alt="User avatar"
+                          referrerpolicy="no-referrer"
+                        />
+                        <div class="details-title">
+                          <div class="primary-line">
+                            <div class="primary">{{ user.name || 'Unnamed user' }}</div>
+                            <span class="badge" [class.badge-admin]="user.role === 'admin'">{{ user.role || 'user' }}</span>
+                          </div>
+                          <div class="secondary">{{ user.email }}</div>
+                        </div>
+                      </div>
+
+                      <div class="top-chips" aria-label="User summary">
+                        <span class="pill" [class.ok]="user.online" [class.bad]="!user.online" [attr.title]="user.online ? 'Online' : 'Offline'">
+                          <span class="status-dot" [class.online]="user.online" [class.offline]="!user.online" aria-hidden="true"></span>
+                          {{ user.online ? 'Online' : 'Offline' }}
+                        </span>
+
+                        <span class="pill" title="PIN">
+                          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                            <path fill="currentColor" d="M12 1a5 5 0 0 0-5 5v4H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5Zm-3 9V6a3 3 0 1 1 6 0v4H9Z"/>
+                          </svg>
+                          <span class="mono">{{ user.pinCode || '-' }}</span>
+                        </span>
+
+                        <span class="pill" [class.ok]="user.isEmailVerified" [class.bad]="!user.isEmailVerified" [attr.title]="user.isEmailVerified ? 'Email verified' : 'Email not verified'">
+                          <svg *ngIf="user.isEmailVerified" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                            <path fill="currentColor" d="M12 2 2 7v6c0 5 4 9 10 9s10-4 10-9V7l-10-5Zm-1 14-4-4 1.41-1.41L11 13.17l5.59-5.58L18 9l-7 7Z"/>
+                          </svg>
+                          <svg *ngIf="!user.isEmailVerified" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                            <path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12Z"/>
+                          </svg>
+                          {{ user.isEmailVerified ? 'Email verified' : 'Email not verified' }}
+                        </span>
                       </div>
                     </div>
 
@@ -163,30 +202,13 @@ import { finalize, timeout } from 'rxjs/operators';
                         <div class="section-title">Account</div>
                         <div class="kv-grid">
                           <div class="kv">
-                            <div class="k">User ID</div>
-                            <div class="v mono">{{ user._id }}</div>
-                          </div>
-                          <div class="kv">
-                            <div class="k">Role</div>
-                            <div class="v">{{ user.role || '-' }}</div>
-                          </div>
-                          <div class="kv">
-                            <div class="k">Email Verified</div>
-                            <div class="v">{{ user.isEmailVerified ? 'Yes' : 'No' }}</div>
-                          </div>
-                          <div class="kv">
-                            <div class="k">Created</div>
+                            <div class="k">
+                              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                <path fill="currentColor" d="M7 10h5v5H7v-5Zm12-7h-1V1h-2v2H8V1H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm0 16H5V8h14v11Z"/>
+                              </svg>
+                              Created
+                            </div>
                             <div class="v">{{ user.createdAt ? (user.createdAt | date:'short') : '-' }}</div>
-                          </div>
-                        </div>
-                      </section>
-
-                      <section class="section">
-                        <div class="section-title">Security</div>
-                        <div class="kv-grid">
-                          <div class="kv">
-                            <div class="k">PIN</div>
-                            <div class="v mono">{{ user.pinCode || '-' }}</div>
                           </div>
                         </div>
                       </section>
@@ -195,34 +217,26 @@ import { finalize, timeout } from 'rxjs/operators';
                         <div class="section-title">Activity</div>
                         <div class="kv-grid">
                           <div class="kv">
-                            <div class="k">Status</div>
-                            <div class="v">{{ user.online ? 'Online' : 'Offline' }}</div>
-                          </div>
-                          <div class="kv">
-                            <div class="k">Last Seen</div>
+                            <div class="k">
+                              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                <path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm1 11h-5V6h2v5h3Z"/>
+                              </svg>
+                              Last Seen
+                            </div>
                             <div class="v">{{ user.lastSeenAt ? (user.lastSeenAt | date:'short') : '-' }}</div>
                           </div>
                           <div class="kv">
-                            <div class="k">Last IP</div>
+                            <div class="k">
+                              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                <path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm5 11H7v-2h10Z"/>
+                              </svg>
+                              Last IP
+                            </div>
                             <div class="v mono">{{ user.lastIp || '-' }}</div>
                           </div>
                           <div class="kv">
                             <div class="k">IP History</div>
                             <div class="v mono">{{ formatIpHistory(user.ipAddresses) }}</div>
-                          </div>
-                        </div>
-                      </section>
-
-                      <section class="section">
-                        <div class="section-title">Integrations</div>
-                        <div class="kv-grid">
-                          <div class="kv">
-                            <div class="k">Google ID</div>
-                            <div class="v mono">{{ user.googleId || '-' }}</div>
-                          </div>
-                          <div class="kv">
-                            <div class="k">Avatar URL</div>
-                            <div class="v mono">{{ user.avatarUrl || '-' }}</div>
                           </div>
                         </div>
                       </section>
@@ -302,6 +316,50 @@ import { finalize, timeout } from 'rxjs/operators';
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
     .small { font-size: 0.9rem; color: var(--text-700); }
 
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.08);
+      color: var(--text-900);
+      font-weight: 800;
+      font-size: 0.92rem;
+      line-height: 1;
+      min-height: 32px;
+      white-space: nowrap;
+    }
+
+    .pill svg { opacity: 0.95; }
+    .pill.ok { color: var(--success-600); }
+    .pill.bad { color: var(--danger-500); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.08);
+      color: var(--text-900);
+      font-weight: 800;
+      font-size: 0.92rem;
+      line-height: 1;
+      min-height: 32px;
+      text-transform: lowercase;
+    }
+
+    .badge-admin {
+      border-color: rgba(0, 0, 0, 0);
+      background: rgba(0, 0, 0, 0);
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: var(--success-600);
+    }
+
     th {
       background: rgba(255,255,255,0.06);
       color: var(--text-700);
@@ -362,11 +420,26 @@ import { finalize, timeout } from 'rxjs/operators';
 
     .details-head {
       display: flex;
-      align-items: center;
-      gap: 12px;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
       padding: 6px 0 12px;
       border-bottom: 1px solid rgba(255,255,255,0.10);
       margin-bottom: 12px;
+    }
+
+    .identity {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .top-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
     }
 
     .avatar {
@@ -380,6 +453,13 @@ import { finalize, timeout } from 'rxjs/operators';
 
     .details-title { min-width: 0; }
     .primary { font-weight: 900; }
+
+    .primary-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
     .secondary {
       color: var(--text-600);
       font-size: 0.92rem;
@@ -406,6 +486,15 @@ import { finalize, timeout } from 'rxjs/operators';
       color: var(--text-600);
       font-size: 0.85rem;
       font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .k svg {
+      color: var(--text-700);
+      opacity: 0.95;
+      flex: 0 0 auto;
     }
 
     .v {
@@ -414,6 +503,10 @@ import { finalize, timeout } from 'rxjs/operators';
       text-overflow: ellipsis;
       word-break: break-word;
     }
+
+    .v .status-dot { margin-right: 8px; }
+
+    .top-chips .status-dot { width: 10px; height: 10px; box-shadow: none; }
 
     button {
       min-height: 40px;
@@ -494,6 +587,15 @@ import { finalize, timeout } from 'rxjs/operators';
         grid-template-columns: 1fr;
       }
 
+      .details-head {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .top-chips {
+        justify-content: flex-start;
+      }
+
       td::before {
         content: attr(data-label);
         color: var(--text-600);
@@ -522,9 +624,9 @@ export class AdminComponent implements OnInit, OnDestroy {
   error = '';
   editRow: string | null = null;
   editUser: any = {};
-  expandedUserId: string | null = null;
-  closingUserId: string | null = null;
-  private closingTimerId: number | null = null;
+  private expandedUserIds = new Set<string>();
+  private closingUserIds = new Set<string>();
+  private closingTimers = new Map<string, number>();
   private refreshIntervalId: number | null = null;
   private adminService = inject(AdminService);
   private cdr = inject(ChangeDetectorRef);
@@ -540,8 +642,37 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.refreshIntervalId = window.setInterval(() => {
       if (this.loading) return;
       if (this.editRow) return;
-      this.fetchUsers();
+      this.refreshUserStatuses();
     }, 15000);
+  }
+
+  private refreshUserStatuses(): void {
+    if (!this.users || this.users.length === 0) return;
+
+    this.adminService.getUserStatuses().subscribe({
+      next: (res: any) => {
+        const statuses: any[] = Array.isArray(res?.statuses) ? res.statuses : [];
+        if (statuses.length === 0) return;
+
+        const byId = new Map<string, any>();
+        for (const s of statuses) {
+          if (s && s._id) byId.set(String(s._id), s);
+        }
+
+        for (const u of this.users) {
+          const s = byId.get(String(u?._id));
+          if (!s) continue;
+          u.online = !!s.online;
+          u.lastSeenAt = s.lastSeenAt ?? u.lastSeenAt;
+          u.lastIp = s.lastIp ?? u.lastIp;
+        }
+
+        this.refreshUi();
+      },
+      error: () => {
+        // Polling should not disrupt the UI.
+      },
+    });
   }
 
   ngOnDestroy(): void {
@@ -550,10 +681,11 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.refreshIntervalId = null;
     }
 
-    if (this.closingTimerId) {
-      window.clearTimeout(this.closingTimerId);
-      this.closingTimerId = null;
+    for (const timerId of this.closingTimers.values()) {
+      window.clearTimeout(timerId);
     }
+    this.closingTimers.clear();
+    this.closingUserIds.clear();
   }
 
   fetchUsers() {
@@ -600,45 +732,67 @@ export class AdminComponent implements OnInit, OnDestroy {
   onEdit(user: any) { this.editRow = user._id; this.editUser = { ...user }; }
   onCancel() { this.editRow = null; this.editUser = {}; }
 
+  isExpanded(id: any): boolean {
+    return this.expandedUserIds.has(String(id));
+  }
+
   toggleDetails(user: any) {
     const id = user?._id;
     if (!id) return;
 
-    // Close currently open details
-    if (this.expandedUserId === id) {
-      this.startClosing(id);
+    const key = String(id);
+
+    // If it's open -> close it
+    if (this.expandedUserIds.has(key)) {
+      this.startClosing(key);
       return;
     }
 
-    // If some other row is open, close it first (animated)
-    if (this.expandedUserId && this.expandedUserId !== id) {
-      this.startClosing(this.expandedUserId);
+    // If it's currently closing -> reopen it
+    if (this.isClosing(key)) {
+      this.stopClosing(key);
+      this.expandedUserIds.add(key);
+      this.refreshUi();
+      return;
     }
 
-    // Open requested row
-    this.expandedUserId = id;
-    if (this.closingUserId === id) this.closingUserId = null;
-
+    // Open requested row (do not auto-close others)
+    this.expandedUserIds.add(key);
     this.refreshUi();
   }
 
-  private startClosing(id: string): void {
-    this.expandedUserId = null;
-    this.closingUserId = id;
+  isClosing(id: string): boolean {
+    return this.closingUserIds.has(String(id));
+  }
 
-    if (this.closingTimerId) {
-      window.clearTimeout(this.closingTimerId);
-      this.closingTimerId = null;
+  private stopClosing(id: string): void {
+    const key = String(id);
+    this.closingUserIds.delete(key);
+    const timerId = this.closingTimers.get(key);
+    if (timerId) window.clearTimeout(timerId);
+    this.closingTimers.delete(key);
+  }
+
+  private startClosing(id: string): void {
+    const key = String(id);
+
+    this.expandedUserIds.delete(key);
+
+    this.closingUserIds.add(key);
+
+    const existingTimer = this.closingTimers.get(key);
+    if (existingTimer) {
+      window.clearTimeout(existingTimer);
+      this.closingTimers.delete(key);
     }
 
-    this.closingTimerId = window.setTimeout(() => {
-      if (this.closingUserId === id) {
-        this.closingUserId = null;
-        this.refreshUi();
-      }
-      this.closingTimerId = null;
+    const timerId = window.setTimeout(() => {
+      this.closingUserIds.delete(key);
+      this.closingTimers.delete(key);
+      this.refreshUi();
     }, 230);
 
+    this.closingTimers.set(key, timerId);
     this.refreshUi();
   }
 

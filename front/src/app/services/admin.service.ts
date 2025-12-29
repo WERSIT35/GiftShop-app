@@ -25,6 +25,12 @@ export class AdminService {
     );
   }
 
+  getUserStatuses(): Observable<any> {
+    return this.http.get<any>('/api/users/status', this.authHeaders()).pipe(
+      timeout(8000)
+    );
+  }
+
   deleteUser(id: string): Observable<any> {
     return this.http.delete<any>(`/api/users/${id}`, this.authHeaders()).pipe(timeout(8000));
   }

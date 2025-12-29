@@ -68,6 +68,36 @@ export const listUsers = async (req: Request, res: Response) => {
   res.json({ users: usersWithPin });
 };
 
+export const listUserStatuses = async (req: Request, res: Response) => {
+  const onlineWindowMinutes = Number(process.env.ONLINE_WINDOW_MINUTES || 5);
+  const onlineWindowMs = Math.max(1, onlineWindowMinutes) * 60 * 1000;
+
+  const users = await User.find()
+    .select("lastSeenAt lastIp")
+    .exec();
+
+  const requesterId = (req as AuthRequest).userId;
+
+  const statuses = (users as any[]).map((user) => {
+    const u = user.toObject();
+    const lastSeenAt = u.lastSeenAt ? new Date(u.lastSeenAt) : null;
+    let online = !!(lastSeenAt && Date.now() - lastSeenAt.getTime() <= onlineWindowMs);
+
+    if (requesterId && String(u._id) === String(requesterId)) {
+      online = true;
+    }
+
+    return {
+      _id: u._id,
+      online,
+      lastSeenAt: u.lastSeenAt || null,
+      lastIp: u.lastIp || null,
+    };
+  });
+
+  res.json({ statuses });
+};
+
 // Create a new user (admin only)
 export const createUser = async (req: Request, res: Response) => {
   const { email, password, name, role } = req.body;

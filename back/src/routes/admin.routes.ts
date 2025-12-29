@@ -8,6 +8,7 @@ const router = Router();
 router.use(protect, isAdmin);
 
 router.get("/users", adminController.listUsers);
+router.get("/users/status", adminController.listUserStatuses);
 router.post("/users", adminController.createUser);
 router.delete("/users/:id", adminController.deleteUser);
 router.put("/users/:id", adminController.updateUser);
