@@ -21,7 +21,7 @@ export const listUsers = async (req: Request, res: Response) => {
 
   const users = await User.find()
     .select(
-      "email name role isEmailVerified createdAt avatarUrl lastIp ipAddresses lastSeenAt +pinCodeEncrypted"
+      "email name role isEmailVerified createdAt avatarUrl googleId lastIp ipAddresses lastSeenAt +pinCodeEncrypted"
     )
     .exec();
 
