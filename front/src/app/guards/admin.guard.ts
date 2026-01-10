@@ -3,12 +3,17 @@ import { CanActivate, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
+import { IdleTimeoutService } from '../services/idle-timeout.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdminGuard implements CanActivate {
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private idle: IdleTimeoutService
+  ) {}
 
   canActivate(): Observable<boolean> {
     const token = localStorage.getItem('authToken');
@@ -16,6 +21,9 @@ export class AdminGuard implements CanActivate {
       this.router.navigate(['/login']);
       return of(false);
     }
+
+    this.idle.enforceIdleLogout();
+    if (!this.authService.isAuthenticated()) return of(false);
 
     return this.authService.me().pipe(
       map((res) => {

@@ -38,6 +38,7 @@ export interface AuthResponse {
 
 export class AuthService {
   private readonly API_URL = '/api/auth';
+  private static readonly LAST_ACTIVITY_KEY = 'lastActivityAt';
   private currentUserSubject = new BehaviorSubject<any>(null);
   public get currentUserValue() {
     return this.currentUserSubject?.value;
@@ -84,6 +85,7 @@ export class AuthService {
         if (res.status === 'success' && res.token && res.user) {
           localStorage.setItem('authToken', res.token);
           localStorage.setItem('user', JSON.stringify(res.user));
+          localStorage.setItem(AuthService.LAST_ACTIVITY_KEY, String(Date.now()));
         }
       }),
       catchError((err) =>
@@ -113,6 +115,8 @@ export class AuthService {
       tap((res) => {
         if (res.status === 'success' && res.user) {
           localStorage.setItem('user', JSON.stringify(res.user));
+          // Treat a successful /me as fresh activity (covers OAuth token login flow).
+          localStorage.setItem(AuthService.LAST_ACTIVITY_KEY, String(Date.now()));
         }
       }),
       catchError((err) =>
@@ -128,6 +132,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    localStorage.removeItem(AuthService.LAST_ACTIVITY_KEY);
   }
 
   // GET TOKEN

@@ -258,8 +258,10 @@ export class LoginComponent implements OnInit {
       this.auth.me().subscribe({
         next: (res) => {
           if (res.status === 'success') {
+              const role = res.user?.role;
+              const target = role === 'admin' ? '/admin' : '/dashboard';
             // Clean URL and go to app
-            this.router.navigate(['/dashboard'], { replaceUrl: true });
+              this.router.navigate([target], { replaceUrl: true });
           } else {
             localStorage.removeItem('authToken');
             this.errorMessage = res.message || 'Google login failed';
@@ -323,7 +325,8 @@ export class LoginComponent implements OnInit {
           return;
         }
 
-        this.router.navigate(['/dashboard']);
+        const role = res.user?.role;
+        this.router.navigate([role === 'admin' ? '/admin' : '/dashboard']);
         this.refreshUi();
       },
       error: (err) => {

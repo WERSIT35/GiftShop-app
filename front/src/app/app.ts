@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { IdleTimeoutService } from './services/idle-timeout.service';
 
 @Component({
   selector: 'app-root',
@@ -10,4 +10,8 @@ import { provideHttpClient } from '@angular/common/http';
 })
 export class App {
   protected readonly title = signal('front');
+
+  constructor(private idleTimeout: IdleTimeoutService) {
+    this.idleTimeout.start();
+  }
 }
