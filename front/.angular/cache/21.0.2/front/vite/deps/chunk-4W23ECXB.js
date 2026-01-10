@@ -1,17 +1,17 @@
 import {
   withHttpTransferCache
-} from "./chunk-GDFDLS2E.js";
+} from "./chunk-IMMUEP65.js";
 import {
   CommonModule,
   PLATFORM_BROWSER_ID
-} from "./chunk-WAQMODTF.js";
+} from "./chunk-IL3TI3WI.js";
 import {
   DomAdapter,
   XhrFactory,
   getDOM,
   parseCookieValue,
   setRootDomAdapter
-} from "./chunk-XH6TMJPS.js";
+} from "./chunk-O4TH46MB.js";
 import {
   APP_ID,
   ApplicationModule,
@@ -71,10 +71,10 @@ import {
   ɵɵdefineInjector,
   ɵɵdefineNgModule,
   ɵɵinject
-} from "./chunk-LFEXZ7N6.js";
+} from "./chunk-QMDAV2NN.js";
 import {
   __spreadValues
-} from "./chunk-U7EDC2PH.js";
+} from "./chunk-GOMI4DH3.js";
 
 // node_modules/@angular/platform-browser/fesm2022/_dom_renderer-chunk.mjs
 var EventManagerPlugin = class {
@@ -1750,4 +1750,4 @@ export {
   provideClientHydration,
   VERSION
 };
-//# sourceMappingURL=chunk-DTOCXAKF.js.map
+//# sourceMappingURL=chunk-4W23ECXB.js.map

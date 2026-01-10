@@ -4,14 +4,12 @@ import * as adminController from "../controllers/admin.controller";
 
 const router = Router();
 
-// All routes below require admin
-router.use(protect, isAdmin);
-
-router.get("/users", adminController.listUsers);
-router.get("/users/status", adminController.listUserStatuses);
-router.post("/users", adminController.createUser);
-router.delete("/users/:id", adminController.deleteUser);
-router.put("/users/:id", adminController.updateUser);
+// Admin-only routes (apply middleware per-route to avoid blocking other /api/* endpoints)
+router.get("/users", protect, isAdmin, adminController.listUsers);
+router.get("/users/status", protect, isAdmin, adminController.listUserStatuses);
+router.post("/users", protect, isAdmin, adminController.createUser);
+router.delete("/users/:id", protect, isAdmin, adminController.deleteUser);
+router.put("/users/:id", protect, isAdmin, adminController.updateUser);
 router.get('/test', (req, res) => {
   res.json({ message: 'Admin test route works' });
 });

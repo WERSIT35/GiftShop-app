@@ -81,6 +81,8 @@ import { AuthService } from '../services/auth.service';
           <a routerLink="/forgot-password">Forgot password?</a>
           <span>•</span>
           <a routerLink="/register">Create account</a>
+          <span>•</span>
+          <a routerLink="/store">Visit store</a>
         </div>
       </div>
     </div>
@@ -259,7 +261,7 @@ export class LoginComponent implements OnInit {
         next: (res) => {
           if (res.status === 'success') {
               const role = res.user?.role;
-              const target = role === 'admin' ? '/admin' : '/dashboard';
+              const target = role === 'admin' ? '/admin' : '/store';
             // Clean URL and go to app
               this.router.navigate([target], { replaceUrl: true });
           } else {
@@ -326,7 +328,7 @@ export class LoginComponent implements OnInit {
         }
 
         const role = res.user?.role;
-        this.router.navigate([role === 'admin' ? '/admin' : '/dashboard']);
+        this.router.navigate([role === 'admin' ? '/admin' : '/store']);
         this.refreshUi();
       },
       error: (err) => {

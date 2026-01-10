@@ -14,6 +14,10 @@ import authRoutes from "./routes/auth.routes";
 import productRoutes from "./routes/product.routes";
 import aiRoutes from "./routes/ai.routes";
 import adminRoutes from "./routes/admin.routes";
+import checkoutRoutes from "./routes/checkout.routes";
+import paymentRoutes from "./routes/payment.routes";
+import { stripeWebhook } from "./controllers/payment.controller";
+import specialOrderRoutes from "./routes/specialOrder.routes";
 
 const app = express();
 
@@ -81,6 +85,16 @@ app.use("/api", apiLimiter);
 app.use("/auth", apiLimiter);
 
 /* ===========================
+   Stripe webhook (raw body)
+   Must be registered BEFORE express.json
+=========================== */
+app.post(
+  "/api/payments/webhook/stripe",
+  express.raw({ type: "application/json" }),
+  stripeWebhook
+);
+
+/* ===========================
    Body parsers
 =========================== */
 app.use(express.json({ limit: "10mb" }));
@@ -122,6 +136,11 @@ app.use("/api/auth", authRoutes);
 app.use("/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/checkout", checkoutRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/special-orders", specialOrderRoutes);
+
+// Admin routes LAST (mounted at /api and protected by isAdmin)
 app.use("/api", adminRoutes);
 
 /* ===========================

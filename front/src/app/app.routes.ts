@@ -9,16 +9,20 @@ import { ForgotPasswordComponent } from './pages/forgot-password.component';
 import { ResetPasswordComponent } from './pages/reset-password.component';
 import { AdminGuard } from './guards/admin.guard';
 import { ProfileComponent } from './pages/profile.component';
+import { CheckoutComponent } from './pages/checkout.component';
+import { StoreComponent } from './pages/store.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '', redirectTo: 'store', pathMatch: 'full' },
 
   // PUBLIC ROUTES
+  { path: 'store', component: StoreComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'login', component: LoginComponent },
   { path: 'verify', component: VerifyComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   {path:'reset-password',component:ResetPasswordComponent},
+  { path: 'checkout', component: CheckoutComponent },
 
   // PROTECTED ROUTES
   { path: 'home', component: HomeComponent, canActivate: [authGuard] },

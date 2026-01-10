@@ -5,6 +5,8 @@ export interface SendEmailArgs {
   to: string;
   subject: string;
   html: string;
+  text?: string;
+  replyTo?: string;
 }
 
 let transporter: nodemailer.Transporter | null = null;
@@ -38,7 +40,7 @@ const createTransporter = async () => {
   return transporter;
 };
 
-export const sendEmail = async ({ to, subject, html }: SendEmailArgs) => {
+export const sendEmail = async ({ to, subject, html, text, replyTo }: SendEmailArgs) => {
   if (!to) {
     throw new Error("No recipient email provided");
   }
@@ -50,6 +52,8 @@ export const sendEmail = async ({ to, subject, html }: SendEmailArgs) => {
     to,
     subject,
     html,
+    text,
+    replyTo,
   });
 };
 
